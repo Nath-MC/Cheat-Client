@@ -11,11 +11,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.shape.VoxelShape;
+import net.naxx.cheatmod.utils.chat.ChatUtils;
 
 public class ClickTP {
     private static final ClickTP INSTANCE = new ClickTP();
     private final String NAME = "ClickTP";
     private boolean isModuleEnabled = false;
+
+    private int reach = 16;
 
     public ClickTP() {
         ClientTickEvents.START_CLIENT_TICK.register((client -> {
@@ -24,7 +27,7 @@ public class ClickTP {
 
             if (this.isModuleEnabled() && client.options.useKey.wasPressed()) {
                 ItemStack mainHandItemStack = client.player.getMainHandStack();
-                HitResult hitResult = client.player.raycast(16, 1f / 20f, false);
+                HitResult hitResult = client.player.raycast(reach, 1f / 20f, false);
 
                 if (MathHelper.sqrt((float) client.player.squaredDistanceTo(hitResult.getPos())) <= 4.8 && !mainHandItemStack.isEmpty())
                     return;
@@ -56,15 +59,24 @@ public class ClickTP {
         return INSTANCE;
     }
 
-    public void toggleModule() {
-        isModuleEnabled = !isModuleEnabled;
-    }
-
     public String getName() {
         return NAME;
     }
 
     public boolean isModuleEnabled() {
         return isModuleEnabled;
+    }
+
+    public void toggleModule() {
+        isModuleEnabled = !isModuleEnabled;
+        ChatUtils.sendMessage(NAME + " toggled " + (isModuleEnabled() ? "on" : "off"));
+    }
+
+    public int getReach() {
+        return reach;
+    }
+
+    public void setReach(int newReach) {
+        reach = newReach;
     }
 }

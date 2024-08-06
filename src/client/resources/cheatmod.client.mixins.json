@@ -3,7 +3,7 @@
   "package": "net.naxx.cheatmod.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ModOptionsScreenMixin"
+    "ModuleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
