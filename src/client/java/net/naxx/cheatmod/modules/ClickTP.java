@@ -22,10 +22,7 @@ public class ClickTP {
 
     public ClickTP() {
         ClientTickEvents.START_CLIENT_TICK.register((client -> {
-            //Run at the start of each tick on the client-side
-            if (client.player == null) return;
-
-            if (this.isModuleEnabled() && client.options.useKey.wasPressed()) {
+            if (this.isModuleEnabled() && client.options.useKey.wasPressed() && client.player != null) {
                 ItemStack mainHandItemStack = client.player.getMainHandStack();
                 HitResult hitResult = client.player.raycast(reach, 1f / 20f, false);
 
@@ -50,6 +47,7 @@ public class ClickTP {
                     double voxelShapeHeight = voxelShape.isEmpty() ? 1 : voxelShape.getMax(Direction.Axis.Y);
 
                     client.player.setPosition(blockPos.getX() + 0.5 + direction.getOffsetX(), blockPos.getY() + voxelShapeHeight, blockPos.getZ() + 0.5 + direction.getOffsetZ());
+                    client.player.setVelocity(0, 0, 0); //Prevents fall damage ?
                 }
             }
         }));
@@ -69,7 +67,7 @@ public class ClickTP {
 
     public void toggleModule() {
         isModuleEnabled = !isModuleEnabled;
-        ChatUtils.sendMessage(NAME + " toggled " + (isModuleEnabled() ? "on" : "off"));
+        ChatUtils.sendMessage(String.format("§l%s§r is %s", NAME, isModuleEnabled ? "§aon§r" : "§coff§r"));
     }
 
     public int getReach() {

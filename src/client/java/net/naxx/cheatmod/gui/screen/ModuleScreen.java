@@ -7,6 +7,7 @@ import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.text.Text;
 import net.naxx.cheatmod.modules.ClickTP;
+import net.naxx.cheatmod.modules.Fly;
 import net.naxx.cheatmod.utils.chat.ChatUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,10 +22,11 @@ public class ModuleScreen extends Screen {
 
     @Override
     protected void init() {
-        GridWidget gridWidget = new GridWidget();
+        GridWidget gridWidget = new GridWidget().setColumnSpacing(10);
 
 
         ClickTPWidgetBuilder(gridWidget);
+        FlyWidgetBuilder(gridWidget);
 
         gridWidget.refreshPositions();
         gridWidget.setPosition(width/2 - gridWidget.getWidth()/2, height/2 - gridWidget.getHeight()/2);
@@ -54,7 +56,7 @@ public class ModuleScreen extends Screen {
             if (reach.get() == 30) return;
             clickTP.setReach(reach.incrementAndGet());
 
-            ChatUtils.sendMessage("§nReach§r -> " + reach + (reach.get() > 1 ? " blocks" : " block"));
+            ChatUtils.sendMessage("§lReach§r : " + reach + (reach.get() > 1 ? " blocks" : " block"));
         }).size(20,20).build());
 
         //- button
@@ -62,10 +64,19 @@ public class ModuleScreen extends Screen {
             if (reach.get() == 1) return;
             clickTP.setReach(reach.decrementAndGet());
 
-            ChatUtils.sendMessage("§nReach§r -> " + reach + (reach.get() > 1 ? " blocks" : " block"));
+            ChatUtils.sendMessage("§lReach§r : " + reach + (reach.get() > 1 ? " blocks" : " block"));
         }).size(20,20).build());
 
         clickTPWidgets.refreshPositions();
         gridWidget.add(clickTPWidgets, 1, 1);
+    }
+
+    private void FlyWidgetBuilder(GridWidget gridWidget) {
+        Fly fly = Fly.getINSTANCE();
+
+        gridWidget.add(ButtonWidget.builder(Text.of(String.format("%s : %s", fly.getName(), fly.isModuleEnabled() ? "§aEnabled" : "§cDisabled")), button -> {
+            fly.toogleModule();
+            button.setMessage(Text.of(String.format("%s : %s", fly.getName(), fly.isModuleEnabled() ? "§aEnabled" : "§cDisabled")));
+        }).size(95, this.textRenderer.fontHeight + 10).build(), 1, 2);
     }
 }

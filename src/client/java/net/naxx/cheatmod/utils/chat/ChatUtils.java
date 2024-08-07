@@ -6,9 +6,9 @@ import net.minecraft.text.Text;
 
 public class ChatUtils {
     static final MinecraftClient INSTANCE = MinecraftClient.getInstance();
-    static final String PREFIX = "§d§lCheatMod  §r§l";
+    static final String PREFIX = "§d§lCheatMod§r  §l|§r  ";
 
     public static void sendMessage(String message) {
-        INSTANCE.inGameHud.getChatHud().addMessage(Text.of(PREFIX+ message));
+        INSTANCE.inGameHud.getChatHud().addMessage(Text.of(PREFIX + message));
     }
 }
