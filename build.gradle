@@ -11,7 +11,10 @@ base {
 }
 
 repositories {
-
+ maven {
+	name = "Terraformers"
+	url = "https://maven.terraformersmc.com/"
+ }
 }
 
 loom {
@@ -34,6 +37,9 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	//ModMenu API
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 	
 }
 

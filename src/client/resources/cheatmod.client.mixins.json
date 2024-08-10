@@ -1,9 +1,10 @@
 {
   "required": true,
-  "package": "net.naxx.cheatmod.mixin.client",
+  "package": "net.naxx.cheatmod.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ModuleScreenMixin"
+    "net.minecraft.client.gui.screen.GameMenuScreenMixin",
+    "net.minecraft.entity.vehicle.BoatEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

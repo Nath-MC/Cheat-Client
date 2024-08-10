@@ -4,7 +4,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.*;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.DirectionalLayoutWidget;
+import net.minecraft.client.gui.widget.GridWidget;
+import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.text.Text;
 import net.naxx.cheatmod.modules.ClickTP;
 import net.naxx.cheatmod.modules.Fly;
@@ -16,6 +19,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ModuleScreen extends Screen {
     public static final MinecraftClient INSTANCE = MinecraftClient.getInstance();
 
+    private final int STD_WIDTH = 95;
+    private final int STD_HEIGHT = 19;
+
     public ModuleScreen(Text title) {
         super(title);
     }
@@ -24,12 +30,11 @@ public class ModuleScreen extends Screen {
     protected void init() {
         GridWidget gridWidget = new GridWidget().setColumnSpacing(10);
 
-
         ClickTPWidgetBuilder(gridWidget);
         FlyWidgetBuilder(gridWidget);
 
         gridWidget.refreshPositions();
-        gridWidget.setPosition(width/2 - gridWidget.getWidth()/2, height/2 - gridWidget.getHeight()/2);
+        gridWidget.setPosition(width / 2 - gridWidget.getWidth() / 2, height / 2 - gridWidget.getHeight() / 2);
         gridWidget.forEachChild(this::addDrawableChild);
     }
 
@@ -49,7 +54,7 @@ public class ModuleScreen extends Screen {
         clickTPWidgets.add(ButtonWidget.builder(Text.of(clickTP.getName() + " : " + (clickTP.isModuleEnabled() ? "§aEnabled" : "§cDisabled")), button -> {
             clickTP.toggleModule();
             button.setMessage(Text.of(clickTP.getName() + " : " + (clickTP.isModuleEnabled() ? "§aEnabled" : "§cDisabled")));
-        }).size(95, this.textRenderer.fontHeight + 10).tooltip(Tooltip.of(Text.of("Teleport yourself toward a block"))).build());
+        }).size(STD_WIDTH, STD_HEIGHT).tooltip(Tooltip.of(clickTP.getDESC())).build());
 
         //+ button
         clickTPWidgets.add(TextIconButtonWidget.WithText.builder(Text.of("+"), positioner -> {
@@ -57,7 +62,7 @@ public class ModuleScreen extends Screen {
             clickTP.setReach(reach.incrementAndGet());
 
             ChatUtils.sendMessage("§lReach§r : " + reach + (reach.get() > 1 ? " blocks" : " block"));
-        }).size(20,20).build());
+        }).size(20, 20).build());
 
         //- button
         clickTPWidgets.add(TextIconButtonWidget.WithText.builder(Text.of("-"), positioner -> {
@@ -65,7 +70,7 @@ public class ModuleScreen extends Screen {
             clickTP.setReach(reach.decrementAndGet());
 
             ChatUtils.sendMessage("§lReach§r : " + reach + (reach.get() > 1 ? " blocks" : " block"));
-        }).size(20,20).build());
+        }).size(20, 20).build());
 
         clickTPWidgets.refreshPositions();
         gridWidget.add(clickTPWidgets, 1, 1);
@@ -77,6 +82,6 @@ public class ModuleScreen extends Screen {
         gridWidget.add(ButtonWidget.builder(Text.of(String.format("%s : %s", fly.getName(), fly.isModuleEnabled() ? "§aEnabled" : "§cDisabled")), button -> {
             fly.toogleModule();
             button.setMessage(Text.of(String.format("%s : %s", fly.getName(), fly.isModuleEnabled() ? "§aEnabled" : "§cDisabled")));
-        }).size(95, this.textRenderer.fontHeight + 10).build(), 1, 2);
+        }).size(95, this.textRenderer.fontHeight + 10).tooltip(Tooltip.of(fly.getDESC())).build(), 1, 2);
     }
 }
