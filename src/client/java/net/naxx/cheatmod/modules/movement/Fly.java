@@ -1,45 +1,58 @@
-package net.naxx.cheatmod.modules;
+package net.naxx.cheatmod.modules.movement;
 
 import net.minecraft.block.AbstractBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
-import net.naxx.cheatmod.utils.chat.ChatUtils;
+import net.naxx.cheatmod.modules.Module;
+import net.naxx.cheatmod.utils.entity.player.PlayerUtils;
 
-import java.util.Objects;
+import java.util.HashMap;
 
 
-public class Fly {
-    private static final Fly INSTANCE = new Fly();
-    private final String NAME = "Fly";
-    private final Text DESC = Text.of("it gives you some wiiings !");
-    private final MinecraftClient client = MinecraftClient.getInstance();
-    float speed = 0.1F;
+public final class Fly extends Module {
+    private static final String description = "it gives you some wiiings !";
+    private static final HashMap<String, Float> settings = new HashMap<>();
+    private final static RunCategory runCategory = RunCategory.onEndingTick;
+
     private Vec3d currentPos;
     private Vec3d lastPos;
-    private boolean isModuleEnabled = false;
-    private int floatingTicks = 0;
-    private boolean floatingReset = false;
+    private int floatingTicks;
+    private boolean floatingReset ;
 
-
-    public static Fly getINSTANCE() {
-        return INSTANCE;
+    public Fly() {
+        super(description, runCategory);
+        setSpeed(0.1F); //Default value
     }
 
-    public void onTick() {
-        if (!isModuleEnabled || client.player == null) return;
+    @Override
+    public void onWorldJoin(ClientWorld world) {
+        floatingTicks = -1;
+        floatingReset = false;
+        lastPos = client.player.getPos();
+    }
 
-        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
-        Objects.requireNonNull(networkHandler);
+    public void onActivate() {
+        if (client.player == null) return;
+        client.player.getAbilities().flying = false;
+    }
 
+    public void onDeactivate() {
+        if (client.player == null) return;
+        client.player.getAbilities().flying = false;
+        client.player.getAbilities().allowFlying = false;
+        client.player.setVelocity(0, 0, 0);
+    }
+
+    @Override
+    public void run() {
         lastPos = currentPos;
         currentPos = client.player.getPos();
 
+        //Math stuff : converting the current yaw to a 3d vector (so when u press w u go straight)
         float yawInRadians = (float) Math.toRadians(client.player.getYaw());
         float f1 = (float) -Math.sin(yawInRadians);
         float f2 = (float) Math.cos(yawInRadians);
@@ -78,7 +91,7 @@ public class Fly {
             }
 
             client.player.setVelocity(velocity);
-            antiKick(networkHandler);
+            antiKick();
         } else if (client.player.getVehicle() instanceof BoatEntity boat) { //Boat fly mode
             boat.setYaw(client.player.getYaw());
 
@@ -107,7 +120,7 @@ public class Fly {
             }
 
             boat.setVelocity(velocity);
-            antiKick(networkHandler);
+            antiKick();
         } else if (client.player.isFallFlying()) { //Elytra fy mode
             if (client.options.jumpKey.isPressed()) {
                 velocity = velocity.add(0, getFinalSpeed(client.player) / 1.5F, 0);
@@ -138,64 +151,38 @@ public class Fly {
 
     }
 
-    private void onActivate() {
-        if (client.player == null) return;
-        client.player.getAbilities().flying = false;
-    }
-
-    private void onDeactivate() {
-        if (client.player == null) return;
-        client.player.getAbilities().flying = false;
-        client.player.getAbilities().allowFlying = false;
-        client.player.setVelocity(0, 0, 0);
-    }
-
-    public String getName() {
-        return NAME;
-    }
-
-    public Text getDESC() {
-        return DESC;
-    }
-
-    public boolean isModuleEnabled() {
-        return isModuleEnabled;
-    }
-
-    public void toogleModule() {
-        isModuleEnabled = !isModuleEnabled;
-        ChatUtils.sendMessage(String.format("§l%s§r is %s", NAME, isModuleEnabled ? "§aon§r" : "§coff§r"));
-
-        if (isModuleEnabled) onActivate();
-        else onDeactivate();
-    }
-
     // See ServerPlayNetworkHandler#isEntityOnAir
     private boolean isEntityOnAir(Entity entity) {
-        return entity.getWorld().getStatesInBox(entity.getBoundingBox().expand(0.0625).stretch(0.0, -0.55, 0.0)).allMatch(AbstractBlock.AbstractBlockState::isAir);
+        return entity.getWorld().getStatesInBox(entity.getBoundingBox().expand(0.0625D).stretch(0.0, -0.55, 0.0)).allMatch(AbstractBlock.AbstractBlockState::isAir);
     }
 
-    private void antiKick(ClientPlayNetworkHandler networkHandler) {
-        if (isEntityOnAir(client.player) && !client.player.isFallFlying() && lastPos.y - currentPos.y < 0.03130D) { //Double value taken from the Flight module in the Meteor Project
-            if (floatingTicks++ == 79) {
-                floatingTicks = 0;
-                networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(currentPos.x, currentPos.y - 0.03130D, currentPos.z, false)); //Double value taken from the Flight module in the Meteor Project
+    private void antiKick() {
+        if (isEntityOnAir(client.player) && !client.player.isFallFlying() && !client.player.isSleeping() && !client.player.isDead() && lastPos.y - currentPos.y < 0.05 && !(client.player.verticalCollision && client.player.groundCollision) && PlayerUtils.getOwnGamemode().isSurvivalLike()) {
+            if (floatingTicks++ == 40) {
+                floatingTicks = -1;
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(currentPos.x, (currentPos.y - 0.05), currentPos.z, client.player.isOnGround()));
                 floatingReset = true;
             } else if (floatingReset) {
                 floatingReset = false;
-                networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(lastPos.x, lastPos.y, lastPos.z, false));
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(lastPos.x, lastPos.y, lastPos.z, client.player.isOnGround()));
             }
         } else {
             if (floatingReset) floatingReset = false;
-            floatingTicks = 0;
+            if (floatingTicks != -1) floatingTicks = -1;
         }
     }
 
+    private float getSpeed() {
+        return settings.get("speed");
+    }
+
+    private void setSpeed(float value) {
+        settings.put("speed", value);
+    }
+
     private float getFinalSpeed(ClientPlayerEntity player) {
-        if (player.isFallFlying() || player.getVehicle() instanceof BoatEntity)
-            return speed * 25F;
-        if (player.isSprinting())
-            return speed * 10F;
-        return speed * 5F;
+        if (player.isFallFlying() || player.getVehicle() instanceof BoatEntity) return getSpeed() * 25F;
+        if (client.options.sprintKey.isPressed() || player.isSprinting()) return getSpeed() * 10F;
+        return getSpeed() * 5F;
     }
 }

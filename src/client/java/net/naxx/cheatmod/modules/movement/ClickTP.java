@@ -1,10 +1,10 @@
-package net.naxx.cheatmod.modules;
+package net.naxx.cheatmod.modules.movement;
+
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
@@ -14,30 +14,41 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
+import net.naxx.cheatmod.modules.Module;
 import net.naxx.cheatmod.utils.chat.ChatUtils;
 
-import java.util.Objects;
+import java.util.HashMap;
 
-public class ClickTP {
-    private static final ClickTP INSTANCE = new ClickTP();
-    private final String NAME = "ClickTP";
-    private final Text DESC = Text.of("Teleport yourself toward a block");
-    private final MinecraftClient client = MinecraftClient.getInstance();
-    private boolean isModuleEnabled = false;
-    private int reach = 16;
+public final class ClickTP extends Module {
+    private static final String description = "TP like an enderman";
+    private final static HashMap<String, Float> settings = new HashMap<>();
+    private final static RunCategory runCategory = RunCategory.onClientTick;
 
-    public static ClickTP getInstance() {
-        return INSTANCE;
+    public ClickTP() {
+        super(description, runCategory);
+        settings.put("reach", 16F); //Default value
     }
 
-    public void onTick() {
-        if (this.isModuleEnabled() && client.options.useKey.wasPressed() && client.player != null) {
-            Objects.requireNonNull(client.getNetworkHandler());
+    @Override
+    public void onWorldJoin(ClientWorld world) {
+    }
 
+    @Override
+    public void onActivate() {
+    }
+
+    @Override
+    public void onDeactivate() {
+    }
+
+    @Override
+    public void run() {
+        if (client.options.useKey.isPressed()) {
+            ChatUtils.sendClientMessage("pressed");
             ItemStack mainHandItemStack = client.player.getMainHandStack();
-            HitResult hitResult = client.player.raycast(reach, 1f / 20f, false);
+            HitResult hitResult = client.player.raycast(settings.get("reach"), 1f / 20f, false);
 
-            if (MathHelper.sqrt((float) client.player.squaredDistanceTo(hitResult.getPos())) <= 4.8 && !mainHandItemStack.isEmpty())
+            if (MathHelper.sqrt((float) hitResult.getPos().squaredDistanceTo(client.player.getEyePos())) <= client.player.getBlockInteractionRange() && !mainHandItemStack.isEmpty())
                 return;
 
             if (hitResult.getType() == HitResult.Type.ENTITY && client.player.interact(((EntityHitResult) hitResult).getEntity(), client.player.preferredHand) != ActionResult.PASS)
@@ -57,41 +68,16 @@ public class ClickTP {
 
                 double voxelShapeHeight = voxelShape.isEmpty() ? 1 : voxelShape.getMax(Direction.Axis.Y);
 
-                Vec3d aimedPosition = new Vec3d(blockPos.getX() + 0.5 + direction.getOffsetX(), blockPos.getY() + voxelShapeHeight, blockPos.getZ() + 0.5 + direction.getOffsetZ());
+                Vec3d finalPosition = new Vec3d(blockPos.getX() + 0.5 + direction.getOffsetX(), blockPos.getY() + voxelShapeHeight, blockPos.getZ() + 0.5 + direction.getOffsetZ());
                 Vec3d currentPosition = client.player.getPos();
 
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i <= 6; i++) {
                     client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(currentPosition.x, currentPosition.y, currentPosition.z, client.player.isOnGround()));
                 }
 
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(aimedPosition.x, aimedPosition.y, aimedPosition.z, client.player.groundCollision));
-                client.player.setPosition(aimedPosition);
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(finalPosition.x, finalPosition.y, finalPosition.z, client.player.groundCollision));
+                client.player.setPosition(finalPosition);
             }
         }
-    }
-
-    public boolean isModuleEnabled() {
-        return isModuleEnabled;
-    }
-
-    public String getName() {
-        return NAME;
-    }
-
-    public Text getDESC() {
-        return DESC;
-    }
-
-    public void toggleModule() {
-        isModuleEnabled = !isModuleEnabled;
-        ChatUtils.sendMessage(String.format("§l%s§r is %s", NAME, isModuleEnabled ? "§aon§r" : "§coff§r"));
-    }
-
-    public int getReach() {
-        return reach;
-    }
-
-    public void setReach(int newReach) {
-        reach = newReach;
     }
 }
