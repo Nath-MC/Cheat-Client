@@ -12,7 +12,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "net.naxx.cheatmod.CheatModClient"
+      "net.naxx.cheatmod.Initializer"
     ]
   },
   "mixins": [
@@ -27,7 +27,15 @@
     "java": ">=21",
     "fabric-api": "*"
   },
-  "suggests": {
-    "another-mod": "*"
-  }
+  "breaks": {
+    "meteor-client": ">=0.3.9"
+  },
+  "jars": [
+    {
+      "file": "libs/javaassist.jar"
+    },
+    {
+      "file": "libs/reflections-0.10.2.jar"
+    }
+  ]
 }

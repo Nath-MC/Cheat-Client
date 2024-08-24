@@ -2,13 +2,14 @@ package net.naxx.cheatmod.utils.chat;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import net.naxx.cheatmod.Initializer;
 
 
-public class ChatUtils {
-    static final MinecraftClient INSTANCE = MinecraftClient.getInstance();
-    static final String PREFIX = "§d§lCheatMod§r  §l|§r  ";
+public abstract class ChatUtils {
+    private static final MinecraftClient client = Initializer.client;
+    private static final String PREFIX = "§d§lCheatMod§r  §l|§r  ";
 
-    public static void sendMessage(String message) {
-        INSTANCE.inGameHud.getChatHud().addMessage(Text.of(PREFIX + message));
+    public static void sendClientMessage(String message, Object... args) {
+        client.inGameHud.getChatHud().addMessage(Text.of(PREFIX + String.format(message, args)));
     }
 }

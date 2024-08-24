@@ -12,12 +12,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameMenuScreen.class)
-public class GameMenuScreenMixin extends Screen {
+public abstract class GameMenuScreenMixin extends Screen {
     @Unique
-    protected ButtonWidget buttonWidget = ButtonWidget.builder(Text.of("Modules"), button -> {
-        assert this.client != null;
-        this.client.setScreen(new ModuleScreen(Text.of("ModuleScreen")));
-    }).dimensions(10, 10, 75, ButtonWidget.DEFAULT_HEIGHT).build();
+    protected ButtonWidget buttonWidget = ButtonWidget.builder(Text.of("§dCheatMod§r"), button -> this.client.setScreen(new ModuleScreen(Text.of("Cheatmod")))).dimensions(10, 10, 75, ButtonWidget.DEFAULT_HEIGHT).build();
 
     protected GameMenuScreenMixin(Text title) {
         super(title);
