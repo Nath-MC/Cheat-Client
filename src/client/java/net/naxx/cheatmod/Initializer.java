@@ -40,7 +40,7 @@ public final class Initializer implements ClientModInitializer {
         for (Class<? extends Module> moduleClazz : foundModules) {
             if (Modifier.isAbstract(moduleClazz.getModifiers())) return;
             try {
-               Module module = moduleClazz.getDeclaredConstructor().newInstance();
+                Module module = moduleClazz.getDeclaredConstructor().newInstance();
 
                 switch (module.getRunCategory()) {
                     case onStartingTick:

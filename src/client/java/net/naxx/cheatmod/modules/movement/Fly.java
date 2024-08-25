@@ -21,7 +21,7 @@ public final class Fly extends Module {
     private Vec3d currentPos;
     private Vec3d lastPos;
     private int floatingTicks;
-    private boolean floatingReset ;
+    private boolean floatingReset;
 
     public Fly() {
         super(description, runCategory);
