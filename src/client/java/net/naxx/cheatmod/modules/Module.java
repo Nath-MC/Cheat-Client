@@ -101,7 +101,7 @@ public abstract class Module {
     }
 
     public enum RunCategory {
-        onStartingTick, onEndingTick, onClientTick,
+        onStartingTick, onEndingTick, OnStartingClientTick, getOnEndingClientTick
     }
 
 }

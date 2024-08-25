@@ -51,7 +51,11 @@ public final class Initializer implements ClientModInitializer {
                         ClientTickEvents.END_WORLD_TICK.register(world -> this.registerModule(module));
                         break;
 
-                    case onClientTick:
+                    case OnStartingClientTick:
+                        ClientTickEvents.START_CLIENT_TICK.register(client -> this.registerModule(module));
+                        break;
+
+                    case getOnEndingClientTick:
                         ClientTickEvents.END_CLIENT_TICK.register(client -> this.registerModule(module));
                         break;
                 }

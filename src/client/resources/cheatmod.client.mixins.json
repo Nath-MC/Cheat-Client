@@ -8,8 +8,5 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-    "net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacketMixin"
-  ]
+  }
 }

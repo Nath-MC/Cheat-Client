@@ -22,7 +22,7 @@ import java.util.HashMap;
 public final class ClickTP extends Module {
     private static final String description = "TP like an enderman";
     private final static HashMap<String, Float> settings = new HashMap<>();
-    private final static RunCategory runCategory = RunCategory.onClientTick;
+    private final static RunCategory runCategory = RunCategory.OnStartingClientTick;
 
     public ClickTP() {
         super(description, runCategory);
@@ -43,8 +43,7 @@ public final class ClickTP extends Module {
 
     @Override
     public void run() {
-        if (client.options.useKey.isPressed()) {
-            ChatUtils.sendClientMessage("pressed");
+        while (client.options.useKey.wasPressed()) {
             ItemStack mainHandItemStack = client.player.getMainHandStack();
             HitResult hitResult = client.player.raycast(settings.get("reach"), 1f / 20f, false);
 
