@@ -5,7 +5,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.text.Text;
 import net.naxx.cheatmod.modules.Module;
-import net.naxx.cheatmod.modules.ModulesCollection;
+import net.naxx.cheatmod.modules.Modules;
 
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -20,7 +20,7 @@ public class ModuleScreen extends Screen {
         Comparator<Module> moduleComparator = Comparator.comparing(module -> module.getName().getString());
         TreeSet<Module> sortedModuleSet = new TreeSet<>(moduleComparator);
 
-        for (Module module : new ModulesCollection()) sortedModuleSet.add(module);
+        for (Module module : new Modules()) sortedModuleSet.add(module);
 
         for (Module module : sortedModuleSet) {
             if (indexes[0] == 5) {

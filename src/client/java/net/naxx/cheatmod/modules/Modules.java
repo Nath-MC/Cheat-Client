@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ModulesCollection implements Iterable<Module> {
+public class Modules implements Iterable<Module> {
 
     private static final ArrayList<Module> modules = new ArrayList<>();
 

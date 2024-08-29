@@ -5,11 +5,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.text.Text;
 import net.naxx.cheatmod.Initializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +26,9 @@ public abstract class Module {
     protected final MinecraftClient client;
     protected final Logger LOGGER = LoggerFactory.getLogger(String.format("%s / %s", Initializer.MOD_NAME, this.getClass().getSimpleName()));
     protected final RunCategory runCategory;
+    protected ClientPlayerEntity clientPlayer;
+    protected ClientWorld clientWorld;
+    protected ClientPlayNetworkHandler network;
     protected boolean active = false;
 
     public Module(String description, RunCategory runCategory) {
@@ -30,7 +37,7 @@ public abstract class Module {
         this.client = Initializer.client;
         this.runCategory = runCategory;
 
-        ModulesCollection.addModule(this);
+        Modules.addModule(this);
         moduleMap.put(this.getClass(), this);
     }
 
@@ -64,11 +71,26 @@ public abstract class Module {
         return runCategory;
     }
 
-    public abstract void onWorldJoin(ClientWorld world);
+    public void onSendPacket(Packet<?> packet, CallbackInfo ci) {
+    }
 
-    public abstract void onActivate();
+    public void onWorldJoin() {
+        this.clientPlayer = client.player;
+        this.clientWorld = client.world;
+        this.network = client.getNetworkHandler();
+    }
 
-    public abstract void onDeactivate();
+    public void onWorldLeave() {
+        this.clientPlayer = null;
+        this.clientWorld = null;
+        this.network = null;
+    }
+
+    public void onActivate() {
+    }
+
+    public void onDeactivate() {
+    }
 
     public abstract void run();
 
@@ -101,7 +123,7 @@ public abstract class Module {
     }
 
     public enum RunCategory {
-        onStartingTick, onEndingTick, OnStartingClientTick, getOnEndingClientTick
+        onStartingTick, onEndingTick, onStartingClientTick, onEndingClientTick,
     }
 
 }

@@ -1,8 +1,11 @@
 package net.naxx.cheatmod.modules.player;
 
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -11,26 +14,26 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.naxx.cheatmod.modules.Module;
-import net.naxx.cheatmod.utils.entity.player.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public final class KillAura extends Module {
-    private static final String description = "Make them sway beneath your feet";
+public final class MobAura extends Module {
+    private static final String description = "Same but on hostiles mobs";
     private static final HashMap<String, Float> settings = new HashMap<>();
-    private static final RunCategory runCategory = RunCategory.onEndingClientTick;
-    public static PlayerEntity target;
+    private static final RunCategory runCategory = RunCategory.onEndingTick;
+    public static MobEntity target;
     public static float serverYaw;
     public static float serverPitch;
 
-    public KillAura() {
+    public MobAura() {
         super(description, runCategory);
-        settings.put("targetRadius", 5F);
+        settings.put("targetRadius", 3F);
         settings.put("hitRadius", 3F);
     }
 
@@ -55,31 +58,46 @@ public final class KillAura extends Module {
             this.silentlyRotateHeadOn(target);
             if (this.canHit(target)) this.attack(target);
         }
+
     }
 
-    private @Nullable PlayerEntity setTarget(ClientWorld world) {
-        Vec3d playerEyePos = clientPlayer.getEyePos();
-        List<AbstractClientPlayerEntity> players = new java.util.ArrayList<>(this.getAllValidPlayers(world).stream().toList());
+    private @Nullable MobEntity setTarget(ClientWorld world) {
+        Iterable<Entity> entities = this.getAllLoadedEntities(world);
+        List<MobEntity> mobs = new ArrayList<>(this.getMobEntitiesIn(entities).stream().toList());
 
-        //Sort the player list according to their distance to the player
-        players.sort((player1, player2) -> {
+        //Sort the mob list according to their distance to the player
+        mobs.sort((player1, player2) -> {
+            Vec3d playerEyePos = clientPlayer.getEyePos();
             double d1 = playerEyePos.squaredDistanceTo(player1.getPos());
             double d2 = playerEyePos.squaredDistanceTo(player2.getPos());
             return Double.compare(d1, d2);
         });
 
-        return players.isEmpty() ? null : players.getFirst();
+        for (MobEntity mob : mobs) {
+            if (!this.isValid(mob)) continue;
+            if (mob instanceof PassiveEntity) continue;
+            if (mob.isTarget(clientPlayer, TargetPredicate.DEFAULT) || mob instanceof HostileEntity) return mob;
+        }
+
+        return null;
     }
 
-    private List<AbstractClientPlayerEntity> getAllValidPlayers(@NotNull ClientWorld world) {
-        return world.getPlayers().stream().filter(this::isValid).toList();
+    private Iterable<Entity> getAllLoadedEntities(@NotNull ClientWorld world) {
+        return world.getEntities();
     }
 
-    private boolean isValid(PlayerEntity target) {
-        return clientPlayer != target && clientPlayer.isInRange(target, settings.get("targetRadius")) && PlayerUtils.getGamemode(target).isSurvivalLike();
+    private @NotNull List<MobEntity> getMobEntitiesIn(@NotNull Iterable<Entity> entities) {
+        List<MobEntity> mobs = new ArrayList<>();
+        for (Entity entity : entities)
+            if (entity instanceof MobEntity mob) mobs.add(mob);
+        return mobs;
     }
 
-    private boolean canHit(PlayerEntity player) {
+    private boolean isValid(MobEntity target) {
+        return clientPlayer.isInRange(target, settings.get("targetRadius"));
+    }
+
+    private boolean canHit(MobEntity player) {
         return clientPlayer.getAttackCooldownProgress(1F / 20F) == 1F && clientPlayer.squaredDistanceTo(player) <= MathHelper.square(settings.get("hitRadius") - Math.random());
     }
 
@@ -87,13 +105,14 @@ public final class KillAura extends Module {
         return !Objects.isNull(target);
     }
 
-    private void attack(PlayerEntity target) {
+    private void attack(MobEntity target) {
+        this.silentlyRotateHeadOn(target);
         client.interactionManager.attackEntity(clientPlayer, target);
         network.sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
     }
 
     //See Entity#lookAt
-    private void silentlyRotateHeadOn(@NotNull PlayerEntity target) {
+    private void silentlyRotateHeadOn(@NotNull MobEntity target) {
         Vec3d targetPos = target.getPos();
         Vec3d playerEyePos = clientPlayer.getEyePos();
 

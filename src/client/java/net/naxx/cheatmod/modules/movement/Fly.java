@@ -2,7 +2,6 @@ package net.naxx.cheatmod.modules.movement;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -29,31 +28,35 @@ public final class Fly extends Module {
     }
 
     @Override
-    public void onWorldJoin(ClientWorld world) {
+    public void onWorldJoin() {
+        this.clientPlayer = client.player;
+        this.clientWorld = client.world;
+        this.network = client.getNetworkHandler();
+
         floatingTicks = -1;
         floatingReset = false;
-        lastPos = client.player.getPos();
+        lastPos = clientPlayer.getPos();
     }
 
     public void onActivate() {
-        if (client.player == null) return;
-        client.player.getAbilities().flying = false;
+        if (clientPlayer == null) return;
+        clientPlayer.getAbilities().flying = false;
     }
 
     public void onDeactivate() {
-        if (client.player == null) return;
-        client.player.getAbilities().flying = false;
-        client.player.getAbilities().allowFlying = false;
-        client.player.setVelocity(0, 0, 0);
+        if (clientPlayer == null) return;
+        clientPlayer.getAbilities().flying = false;
+        clientPlayer.getAbilities().allowFlying = false;
+        clientPlayer.setVelocity(0, 0, 0);
     }
 
     @Override
     public void run() {
         lastPos = currentPos;
-        currentPos = client.player.getPos();
+        currentPos = clientPlayer.getPos();
 
         //Math stuff : converting the current yaw to a 3d vector (so when u press w u go straight)
-        float yawInRadians = (float) Math.toRadians(client.player.getYaw());
+        float yawInRadians = (float) Math.toRadians(clientPlayer.getYaw());
         float f1 = (float) -Math.sin(yawInRadians);
         float f2 = (float) Math.cos(yawInRadians);
         float f3 = (float) -Math.sin(yawInRadians + Math.PI / 2);
@@ -64,89 +67,89 @@ public final class Fly extends Module {
         Vec3d velocity = Vec3d.ZERO;
 
         //Standard fly mode
-        if (!client.player.isFallFlying() && !client.player.hasVehicle()) {
+        if (!clientPlayer.isFallFlying() && !clientPlayer.hasVehicle()) {
 
             if (client.options.jumpKey.isPressed()) {
-                velocity = velocity.add(0, getFinalSpeed(client.player), 0);
+                velocity = velocity.add(0, getFinalSpeed(clientPlayer), 0);
             }
 
             if (client.options.sneakKey.isPressed()) {
-                velocity = velocity.subtract(0, getFinalSpeed(client.player), 0);
+                velocity = velocity.subtract(0, getFinalSpeed(clientPlayer), 0);
             }
 
-            if (client.player.input.pressingForward) {
-                velocity = velocity.add(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingForward) {
+                velocity = velocity.add(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingBack) {
-                velocity = velocity.subtract(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingBack) {
+                velocity = velocity.subtract(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingRight) {
-                velocity = velocity.add(f3 * getFinalSpeed(client.player), 0, f4 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingRight) {
+                velocity = velocity.add(f3 * getFinalSpeed(clientPlayer), 0, f4 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingLeft) {
-                velocity = velocity.add(f5 * getFinalSpeed(client.player), 0, f6 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingLeft) {
+                velocity = velocity.add(f5 * getFinalSpeed(clientPlayer), 0, f6 * getFinalSpeed(clientPlayer));
             }
 
-            client.player.setVelocity(velocity);
+            clientPlayer.setVelocity(velocity);
             antiKick();
-        } else if (client.player.getVehicle() instanceof BoatEntity boat) { //Boat fly mode
-            boat.setYaw(client.player.getYaw());
+        } else if (clientPlayer.getVehicle() instanceof BoatEntity boat) { //Boat fly mode
+            boat.setYaw(clientPlayer.getYaw());
 
             if (client.options.jumpKey.isPressed()) {
-                velocity = velocity.add(0, getFinalSpeed(client.player) / 1.5F, 0);
+                velocity = velocity.add(0, getFinalSpeed(clientPlayer) / 1.5F, 0);
             }
 
             if (client.options.sprintKey.isPressed()) {
-                velocity = velocity.subtract(0, getFinalSpeed(client.player), 0);
+                velocity = velocity.subtract(0, getFinalSpeed(clientPlayer), 0);
             }
 
-            if (client.player.input.pressingForward) {
-                velocity = velocity.add(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingForward) {
+                velocity = velocity.add(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingBack) {
-                velocity = velocity.subtract(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingBack) {
+                velocity = velocity.subtract(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingRight) {
-                velocity = velocity.add(f3 * getFinalSpeed(client.player), 0, f4 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingRight) {
+                velocity = velocity.add(f3 * getFinalSpeed(clientPlayer), 0, f4 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingLeft) {
-                velocity = velocity.add(f5 * getFinalSpeed(client.player), 0, f6 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingLeft) {
+                velocity = velocity.add(f5 * getFinalSpeed(clientPlayer), 0, f6 * getFinalSpeed(clientPlayer));
             }
 
             boat.setVelocity(velocity);
             antiKick();
-        } else if (client.player.isFallFlying()) { //Elytra fy mode
+        } else if (clientPlayer.isFallFlying()) { //Elytra fy mode
             if (client.options.jumpKey.isPressed()) {
-                velocity = velocity.add(0, getFinalSpeed(client.player) / 1.5F, 0);
+                velocity = velocity.add(0, getFinalSpeed(clientPlayer) / 1.5F, 0);
             }
 
             if (client.options.sneakKey.isPressed()) {
-                velocity = velocity.subtract(0, getFinalSpeed(client.player), 0);
+                velocity = velocity.subtract(0, getFinalSpeed(clientPlayer), 0);
             }
 
-            if (client.player.input.pressingForward) {
-                velocity = velocity.add(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingForward) {
+                velocity = velocity.add(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingBack) {
-                velocity = velocity.subtract(f1 * getFinalSpeed(client.player), 0, f2 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingBack) {
+                velocity = velocity.subtract(f1 * getFinalSpeed(clientPlayer), 0, f2 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingRight) {
-                velocity = velocity.add(f3 * getFinalSpeed(client.player), 0, f4 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingRight) {
+                velocity = velocity.add(f3 * getFinalSpeed(clientPlayer), 0, f4 * getFinalSpeed(clientPlayer));
             }
 
-            if (client.player.input.pressingLeft) {
-                velocity = velocity.add(f5 * getFinalSpeed(client.player), 0, f6 * getFinalSpeed(client.player));
+            if (clientPlayer.input.pressingLeft) {
+                velocity = velocity.add(f5 * getFinalSpeed(clientPlayer), 0, f6 * getFinalSpeed(clientPlayer));
             }
 
-            client.player.setVelocity(velocity);
+            clientPlayer.setVelocity(velocity);
         }
 
     }
@@ -157,14 +160,14 @@ public final class Fly extends Module {
     }
 
     private void antiKick() {
-        if (isEntityOnAir(client.player) && !client.player.isFallFlying() && !client.player.isSleeping() && !client.player.isDead() && lastPos.y - currentPos.y < 0.05 && !(client.player.verticalCollision && client.player.groundCollision) && PlayerUtils.getOwnGamemode().isSurvivalLike()) {
+        if (this.isEntityOnAir(clientPlayer) && !clientPlayer.isFallFlying() && !clientPlayer.isSleeping() && !clientPlayer.isDead() && lastPos.y - currentPos.y < 0.05 && !(clientPlayer.verticalCollision && clientPlayer.groundCollision) && PlayerUtils.getOwnGamemode().isSurvivalLike()) {
             if (floatingTicks++ == 40) {
                 floatingTicks = -1;
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(currentPos.x, (currentPos.y - 0.05), currentPos.z, client.player.isOnGround()));
+                network.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(currentPos.x, (currentPos.y - 0.05), currentPos.z, clientPlayer.isOnGround()));
                 floatingReset = true;
             } else if (floatingReset) {
                 floatingReset = false;
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(lastPos.x, lastPos.y, lastPos.z, client.player.isOnGround()));
+                network.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(lastPos.x, lastPos.y, lastPos.z, clientPlayer.isOnGround()));
             }
         } else {
             if (floatingReset) floatingReset = false;

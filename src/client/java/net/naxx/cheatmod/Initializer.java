@@ -42,6 +42,9 @@ public final class Initializer implements ClientModInitializer {
             try {
                 Module module = moduleClazz.getDeclaredConstructor().newInstance();
 
+                ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> module.onWorldJoin());
+                ClientPlayConnectionEvents.DISCONNECT.register(((handler, client) -> module.onWorldLeave()));
+
                 switch (module.getRunCategory()) {
                     case onStartingTick:
                         ClientTickEvents.START_WORLD_TICK.register(world -> this.registerModule(module));
@@ -51,16 +54,14 @@ public final class Initializer implements ClientModInitializer {
                         ClientTickEvents.END_WORLD_TICK.register(world -> this.registerModule(module));
                         break;
 
-                    case OnStartingClientTick:
+                    case onStartingClientTick:
                         ClientTickEvents.START_CLIENT_TICK.register(client -> this.registerModule(module));
                         break;
 
-                    case getOnEndingClientTick:
+                    case onEndingClientTick:
                         ClientTickEvents.END_CLIENT_TICK.register(client -> this.registerModule(module));
                         break;
                 }
-
-                ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> module.onWorldJoin(client.world));
 
                 LOGGER.info("Registered {}", module.getName().getString());
             } catch (Exception e) {

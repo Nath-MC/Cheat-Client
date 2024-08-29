@@ -7,7 +7,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.world.GameMode;
 import net.naxx.cheatmod.Initializer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -19,17 +18,17 @@ public abstract class PlayerUtils {
     private static final ClientPlayNetworkHandler network = client.getNetworkHandler();
 
 
-    public static @Nullable GameMode getGamemode(UUID uuid) {
+    public static @NotNull GameMode getGamemode(UUID uuid) {
         assert !Objects.isNull(player) && !Objects.isNull(network);
         return Objects.requireNonNull(network.getPlayerListEntry(uuid), "failed to get target gamemode").getGameMode();
     }
 
-    public static @Nullable GameMode getGamemode(@NotNull Entity entity) {
+    public static @NotNull GameMode getGamemode(@NotNull Entity entity) {
         return getGamemode(entity.getUuid());
     }
 
-    public static @Nullable GameMode getOwnGamemode() {
+    public static @NotNull GameMode getOwnGamemode() {
         assert client.player != null;
-        return client.interactionManager.getCurrentGameMode();
+        return Objects.requireNonNull(client.interactionManager.getCurrentGameMode(), "failed to get own gamemode");
     }
 }

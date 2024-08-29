@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "net.minecraft.client.gui.screen.GameMenuScreenMixin",
-    "net.minecraft.entity.vehicle.BoatEntityMixin"
+    "net.minecraft.entity.vehicle.BoatEntityMixin",
+    "net.minecraft.network.ClientConnectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
