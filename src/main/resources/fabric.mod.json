@@ -12,30 +12,21 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "net.naxx.cheatmod.Initializer"
+      "net.naxxsoftwares.mod.Initializer"
     ]
   },
   "mixins": [
-    {
-      "config": "cheatmod.client.mixins.json",
-      "environment": "client"
-    }
+    "mixins.json"
   ],
+  "accessWidener": "cheatmod.accesswidener",
   "depends": {
     "fabricloader": ">=0.16.0",
-    "minecraft": "~1.21",
-    "java": ">=21",
-    "fabric-api": "*"
+    "minecraft": [
+      "${minecraft_version}"
+    ],
+    "java": ">=21"
   },
   "breaks": {
-    "meteor-client": ">=0.3.9"
-  },
-  "jars": [
-    {
-      "file": "libs/javaassist.jar"
-    },
-    {
-      "file": "libs/reflections-0.10.2.jar"
-    }
-  ]
+    "meteor-client": "*"
+  }
 }

@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "net.naxxsoftwares.mod.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "BoatEntityMixin",
+    "ClientConnectionMixin",
+    "GameMenuScreenMixin",
+    "PlayerInteractEntityC2SPacketMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
