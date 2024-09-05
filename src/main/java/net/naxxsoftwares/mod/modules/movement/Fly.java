@@ -28,7 +28,6 @@ public final class Fly extends Module {
 
     @Override
     public void onWorldJoin() {
-        super.onWorldJoin();
         floatingTicks = -1;
         floatingReset = false;
     }

@@ -28,10 +28,17 @@ dependencies {
 
     // Fabric API
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // Make a collection of all api modules we wish to use
+    Set<String> apiModules = [
+            "fabric-api-base",
+            "fabric-lifecycle-events-v1",
+            "fabric-networking-api-v1"
+    ]
 
-    // ModMenu
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    // Add each module as a dependency
+    apiModules.forEach {
+        include(modImplementation(fabricApi.module(it, project.fabric_version)))
+    }
 
     // Reflections
     shadow "org.reflections:reflections:${project.reflections_version}"
@@ -62,7 +69,6 @@ java {
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
-    withJavadocJar()
 
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21

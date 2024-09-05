@@ -7,7 +7,7 @@
   "authors": [
     "PurpyNaxx_"
   ],
-  "license": "MIT",
+  "license": "GNU GPLv3",
   "icon": "assets/cheatmod/icon.png",
   "environment": "client",
   "entrypoints": {
