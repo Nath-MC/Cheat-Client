@@ -2,6 +2,7 @@ package net.naxxsoftwares.mod.modules.movement;
 
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
 import net.naxxsoftwares.mod.utils.chat.ChatUtils;
 import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
@@ -11,22 +12,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public final class NoFall extends Module {
 
     public NoFall() {
-        super("Cancel fall damage", RunType.onEndingTick);
+        super("Cancel fall damage");
     }
 
-    @Override
-    public void onSendPacket(Packet<?> packet, @NotNull CallbackInfo ci) {
+    @Event
+    public void onPacket(Packet<?> packet, @NotNull CallbackInfo ci) {
         if (packet instanceof PlayerMoveC2SPacket movePacket) {
             if (!movePacket.isOnGround() && !(client.player.verticalCollision && client.player.groundCollision) && client.player.fallDistance > 3 && GamemodeUtils.getOwnGamemode().isSurvivalLike()) {
                 ci.cancel();
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.Full(movePacket.getX(0), movePacket.getY(0), movePacket.getZ(0), movePacket.getYaw(0), movePacket.getPitch(0), true));
-                client.player.setOnGround(true);
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.Full(movePacket.getX(0), movePacket.getY(0), movePacket.getZ(0), movePacket.getYaw(client.player.getYaw()),
+                        movePacket.getPitch(0), true));
             }
         }
-    }
-
-    @Override
-    public void run() {
     }
 
     @Override

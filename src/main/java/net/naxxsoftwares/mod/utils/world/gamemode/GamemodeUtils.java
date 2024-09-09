@@ -27,12 +27,12 @@ public abstract class GamemodeUtils {
         return Objects.requireNonNull(network.getPlayerListEntry(uuid), "failed to resolve target UUID").getGameMode();
     }
 
+    public static boolean isInSpectator() {
+        return getOwnGamemode() == GameMode.SPECTATOR;
+    }
+
     public static @NotNull GameMode getOwnGamemode() {
         assert client.interactionManager != null;
         return Objects.requireNonNull(client.interactionManager.getCurrentGameMode(), "failed to get own gamemode");
-    }
-
-    public static boolean isInSpectator() {
-        return getOwnGamemode() == GameMode.SPECTATOR;
     }
 }

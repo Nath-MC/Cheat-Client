@@ -12,6 +12,7 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
 import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,31 +35,35 @@ public final class MobAura extends Module {
     public static float serverPitch;
 
     public MobAura() {
-        super("Same but on hostile mobs", RunType.onEndingTick);
+        super("Same but on hostile mobs");
         SETTINGS.put("targetRadius", 4F);
         SETTINGS.put("hitRadius", 3F);
     }
 
-    @Override
-    public void onSendPacket(Packet<?> packet, @NotNull CallbackInfo ci) {
+    public static @Nullable MobEntity getTarget() {
+        return target;
+    }
+
+    @Event
+    public void onPacket(Packet<?> packet, @NotNull CallbackInfo ci) {
         if (packet instanceof PlayerMoveC2SPacket.Full fullPacket && targetFound()) {
             Vec3d pos = new Vec3d(fullPacket.getX(client.player.getX()), fullPacket.getY(client.player.getY()), fullPacket.getZ(client.player.getZ()));
             ci.cancel();
             client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y, pos.z, client.player.isOnGround()));
-        } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround lookPacket && targetFound())
-            if (lookPacket.getYaw(0F) != serverYaw || lookPacket.getPitch(0F) != serverPitch)
-                ci.cancel();
+        } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround lookPacket && targetFound()) if (lookPacket.getYaw(0F) != serverYaw || lookPacket.getPitch(0F) != serverPitch) ci.cancel();
     }
 
-    @Override
-    public void run() {
-        if (GamemodeUtils.isInSpectator())
-            return;
-        target = this.findTarget(client.world);
+    public static boolean targetFound() {
+        return !Objects.isNull(target);
+    }
+
+    @Event
+    public void onTick(ClientWorld world) {
+        if (GamemodeUtils.isInSpectator()) return;
+        target = this.findTarget(world);
         if (targetFound()) {
             this.rotateHeadToTarget(target);
-            if (this.canHit(target))
-                this.attack(target);
+            if (this.canHit(target)) this.attack(target);
         }
 
     }
@@ -106,27 +111,20 @@ public final class MobAura extends Module {
     }
 
     private boolean isHostile(MobEntity mob) {
-        if (!GamemodeUtils.getOwnGamemode().isSurvivalLike())
-            return false;
+        if (!GamemodeUtils.getOwnGamemode().isSurvivalLike()) return false;
 
         boolean isTamedByPlayer = false;
-        if (mob instanceof TameableEntity tameable)
-            isTamedByPlayer = tameable.isTamed() && tameable.getOwnerUuid() == client.player.getUuid();
+        if (mob instanceof TameableEntity tameable) isTamedByPlayer = tameable.isTamed() && tameable.getOwnerUuid() == client.player.getUuid();
 
-        if (mob instanceof EndermanEntity enderman)
-            return enderman.isAttacking();
+        if (mob instanceof EndermanEntity enderman) return enderman.isAttacking();
 
-        if (mob instanceof SpiderEntity spider)
-            return client.world.isNight() || spider.isAttacking();
+        if (mob instanceof SpiderEntity spider) return client.world.isNight() || spider.isAttacking();
 
-        if (mob instanceof ZombifiedPiglinEntity piglin)
-            return piglin.isAttacking();
+        if (mob instanceof ZombifiedPiglinEntity piglin) return piglin.isAttacking();
 
-        if (mob instanceof IronGolemEntity ironGolem)
-            return ironGolem.isAttacking();
+        if (mob instanceof IronGolemEntity ironGolem) return ironGolem.isAttacking();
 
-        if (mob instanceof WolfEntity wolf)
-            return wolf.isAttacking() && !isTamedByPlayer;
+        if (mob instanceof WolfEntity wolf) return wolf.isAttacking() && !isTamedByPlayer;
 
         return mob instanceof HostileEntity;
     }
@@ -154,13 +152,5 @@ public final class MobAura extends Module {
         serverPitch = MathHelper.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 180.0F / Math.PI)));
 
         client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(serverYaw, serverPitch, client.player.isOnGround()));
-    }
-
-    public static boolean targetFound() {
-        return !Objects.isNull(target);
-    }
-
-    public static @Nullable MobEntity getTarget() {
-        return target;
     }
 }

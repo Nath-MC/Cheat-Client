@@ -31,7 +31,6 @@ dependencies {
     // Make a collection of all api modules we wish to use
     Set<String> apiModules = [
             "fabric-api-base",
-            "fabric-lifecycle-events-v1",
             "fabric-networking-api-v1"
     ]
 

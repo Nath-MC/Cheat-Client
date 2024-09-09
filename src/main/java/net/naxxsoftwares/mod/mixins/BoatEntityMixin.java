@@ -19,15 +19,13 @@ public abstract class BoatEntityMixin {
 
     @Redirect(method = "updatePaddles", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/vehicle/BoatEntity;" + "pressingRight:Z"))
     private boolean updatePaddlesR(BoatEntity instance) {
-        if (Modules.isModuleActive(Fly.class))
-            return false;
+        if (Modules.isModuleActive(Fly.class)) return false;
         return pressingRight;
     }
 
     @Redirect(method = "updatePaddles", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/vehicle/BoatEntity;" + "pressingLeft:Z"))
     private boolean updatePaddlesL(BoatEntity instance) {
-        if (Modules.isModuleActive(Fly.class))
-            return false;
+        if (Modules.isModuleActive(Fly.class)) return false;
         return pressingLeft;
     }
 }

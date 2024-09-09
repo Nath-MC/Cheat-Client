@@ -2,8 +2,6 @@ package net.naxxsoftwares.mod.utils.entity.player;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.naxxsoftwares.mod.Initializer;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,10 +9,15 @@ public abstract class PlayerUtils {
 
     private static final MinecraftClient client = Initializer.client;
 
-    public static boolean isInReach(@NotNull Entity entity) {
-        boolean canReachFeet = client.player.getEyePos().squaredDistanceTo(entity.getPos()) <= MathHelper.square(client.player.getEntityInteractionRange());
-        boolean canReachMid = client.player.getEyePos().squaredDistanceTo(entity.getPos().offset(Direction.UP, entity.getBoundingBox().getLengthY() / 2)) <= MathHelper.square(client.player.getEntityInteractionRange());
-        boolean canReachHead = client.player.getEyePos().squaredDistanceTo(entity.getPos().offset(Direction.UP, entity.getBoundingBox().getLengthY())) <= MathHelper.square(client.player.getEntityInteractionRange());
-        return canReachHead || canReachMid || canReachFeet;
+    public static boolean isEntityInReach(@NotNull Entity entity) {
+        return isEntityInReach(entity, client.player.getEntityInteractionRange());
+    }
+
+    public static boolean isEntityInReach(@NotNull Entity entity, double reach) {
+        return client.player.getEyePos().squaredDistanceTo(RotationsUtils.getClosestPointOnHitbox(entity)) <= Math.pow(reach, 2);
+    }
+
+    public static boolean isCooldownFinished(float baseTime) {
+        return client.player.getAttackCooldownProgress(baseTime) == 1F;
     }
 }

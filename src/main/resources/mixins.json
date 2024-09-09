@@ -5,7 +5,9 @@
   "client": [
     "BoatEntityMixin",
     "ClientConnectionMixin",
+    "ClientWorldMixin",
     "GameMenuScreenMixin",
+    "MinecraftClientMixin",
     "PlayerInteractEntityC2SPacketMixin"
   ],
   "injectors": {
