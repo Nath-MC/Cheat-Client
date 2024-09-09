@@ -37,7 +37,7 @@ jobs:
 
       # You can use the extracted version later, for example, in a release
       - name: Create GitHub Release
-        uses: actions/create-release@v1.2.0
+        uses: actions/create-release@v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
