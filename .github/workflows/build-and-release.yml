@@ -33,7 +33,7 @@ jobs:
         run:  |
           MOD_ID=$(grep '^"id"=' fabric.mod.json | cut -d'=' -f2)
           echo "Mod ID: $MOD_ID"
-          echo "mod_id=$MOD_ID" >> $GITHUB_OUTPUT
+          echo "mod_id=$MOD_ID" >> $GITHUB_ENV
 
       # fetch mod version
       - name: Get version from gradle.properties
@@ -41,7 +41,7 @@ jobs:
         run: |
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
           echo "Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_ENV
 
       # Create GitHub Release
       - name: Create GitHub Release
@@ -50,10 +50,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          release_name: ${{ steps.get_modid.outputs.mod_id }} v${{ steps.get_version.outputs.version }}
+          tag_name: v$version
+          release_name: Release v$version
           body: |
-            Release of version ${{ steps.get_version.outputs.version }}
+            Release of version $version
           draft: false
           prerelease: false
 
@@ -64,6 +64,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/${{ steps.get_modid.outputs.mod_id }}-${{ steps.get_version.outputs.version }}.jar  # Update this if needed
-          asset_name: ${{ steps.get_modid.outputs.mod_id }}${{ steps.get_modid.outputs.mod_id }}-v${{ steps.get_version.outputs.version }}.jar
+          asset_path: build/libs/$mod_id-$version.jar
+          asset_name: $mod_id-$version.jar
           asset_content_type: application/java-archive
