@@ -1,14 +1,9 @@
 package net.naxxsoftwares.mod.modules;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import net.minecraft.client.MinecraftClient;
-import net.naxxsoftwares.mod.Initializer;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -28,7 +23,7 @@ public class Modules implements Iterable<Module> {
     public static boolean isModuleValid(@NotNull Class<? extends Module> clazz) {
         if (Modifier.isAbstract(clazz.getModifiers())) return false;
         if (getModuleByClass(clazz) != null) return false;
-        return modules.stream().noneMatch(module1 -> Objects.equals(Module.getStringName(clazz), Module.getStringName(module1)));
+        return modules.stream().noneMatch(module -> Objects.equals(Module.getStringName(clazz), Module.getStringName(module)));
     }
 
     public static @Nullable Module getModuleByClass(Class<? extends Module> module) {
@@ -61,7 +56,6 @@ public class Modules implements Iterable<Module> {
     private static class ModuleIterator implements Iterator<Module> {
         private int index = 0;
 
-        @Contract(pure = true)
         @Override
         public boolean hasNext() {
             return index < modules.size();

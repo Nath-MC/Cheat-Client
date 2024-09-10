@@ -2,6 +2,7 @@ package net.naxxsoftwares.mod.utils.entity.player;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -25,59 +26,47 @@ public class RotationsUtils {
         serverPitch = MathHelper.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 180.0F / Math.PI)));
     }
 
+    // This function can seem heavy, but it takes between 0.002 and 0.003 milliseconds to process
     public static @NotNull Vec3d getClosestPointOnHitbox(@NotNull Entity entity) {
         Vec3d playerEyePos = client.player.getEyePos();
         Vec3d entityPos = entity.getPos();
+        Box boundingBox = entity.getBoundingBox();
 
         double closestXPos = 0;
         double closestYPos = 0;
         double closestZPos = 0;
 
-        // Truncates to the last two decimal digits
-        double lengthX = truncateToTwoPlaces(entity.getBoundingBox().getLengthX());
-        double lengthY = truncateToTwoPlaces(entity.getBoundingBox().getLengthY());
-        double lengthZ = truncateToTwoPlaces(entity.getBoundingBox().getLengthZ());
+        // Get bounding box dimensions
+        double lengthX = truncateToTwoPlaces(boundingBox.getLengthX());
+        double lengthY = truncateToTwoPlaces(boundingBox.getLengthY());
+        double lengthZ = truncateToTwoPlaces(boundingBox.getLengthZ());
 
+        // Get the number of check points along each axis
         int checkPointsX = getNumberOfCheckPoints(lengthX);
-        int checkPointsY = getNumberOfCheckPoints(lengthY); // For lengthY = 1.95, checkPointsY = 19.5
+        int checkPointsY = getNumberOfCheckPoints(lengthY);
         int checkPointsZ = getNumberOfCheckPoints(lengthZ);
 
         double closestDistance = Double.MAX_VALUE;
 
         for (int i = 0; i <= checkPointsX; i++) {
-            double offset = (lengthX / checkPointsX) * i;
-            Vec3d point = entityPos.add(offset, 0, 0);
-            double distance = playerEyePos.squaredDistanceTo(point);
+            for (int j = 0; j <= checkPointsY; j++) {
+                for (int k = 0; k <= checkPointsZ; k++) {
+                    // Calculate offsets for the current point
+                    double offsetX = (lengthX / checkPointsX) * i;
+                    double offsetY = (lengthY / checkPointsY) * j;
+                    double offsetZ = (lengthZ / checkPointsZ) * k;
 
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestXPos = point.x;
-            }
-        }
+                    Vec3d point = entityPos.add(offsetX, offsetY, offsetZ);
+                    double distance = playerEyePos.squaredDistanceTo(point);
 
-        closestDistance = Double.MAX_VALUE; // Reset the value
-
-        for (int i = 0; i <= checkPointsY; i++) {
-            double offset = (lengthY / checkPointsY) * i;
-            Vec3d point = entityPos.add(0, offset, 0);
-            double distance = playerEyePos.squaredDistanceTo(point);
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestYPos = point.y;
-            }
-        }
-
-        closestDistance = Double.MAX_VALUE; // Reset the value
-
-        for (int i = 0; i <= checkPointsZ; i++) {
-            double offset = (lengthZ / checkPointsZ) * i;
-            Vec3d point = entityPos.add(0, 0, offset);
-            double distance = playerEyePos.squaredDistanceTo(point);
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestZPos = point.z;
+                    // Update the closest point if the current one is closer
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestXPos = point.x;
+                        closestYPos = point.y;
+                        closestZPos = point.z;
+                    }
+                }
             }
         }
 

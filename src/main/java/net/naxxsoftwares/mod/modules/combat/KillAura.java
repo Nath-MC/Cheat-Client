@@ -63,14 +63,14 @@ public final class KillAura extends Module implements TargetManager<PlayerEntity
     @Event
     public void onTick(ClientWorld world) {
         if (GamemodeUtils.isInSpectator()) return;
-        target = this.findTarget(world);
+        target = this.setTarget(world);
         if (this.hasTarget()) {
             this.rotateOn(target);
             if (this.canHit(target)) this.attack(target);
         }
     }
 
-    private @Nullable PlayerEntity findTarget(@NotNull ClientWorld world) {
+    private @Nullable PlayerEntity setTarget(@NotNull ClientWorld world) {
         Vec3d playerEyePos = client.player.getEyePos();
         return getAllValidPlayers(world).stream().min(Comparator.comparingDouble(player -> playerEyePos.squaredDistanceTo(player.getPos()))).orElse(null);
     }
@@ -84,7 +84,7 @@ public final class KillAura extends Module implements TargetManager<PlayerEntity
     }
 
     private boolean canHit(@NotNull PlayerEntity player) {
-        return client.player.getAttackCooldownProgress(1F / 20F) == 1F && PlayerUtils.isEntityInReach(player, SETTINGS.get("hitRadius"));
+        return PlayerUtils.isCooldownFinished() && PlayerUtils.isEntityInReach(player, SETTINGS.get("hitRadius"));
     }
 
     @SuppressWarnings("DataFlowIssue")

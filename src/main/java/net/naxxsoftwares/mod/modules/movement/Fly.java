@@ -123,8 +123,8 @@ public final class Fly extends Module {
         }
     }
 
-    private  boolean shouldReset() {
-       return isEntityOnAir(client.player) && !client.player.isFallFlying() && !client.player.isSleeping() && !client.player.isDead() && lastPos.y - currentPos.y < 0.04 && GamemodeUtils.getOwnGamemode().isSurvivalLike();
+    private boolean shouldReset() {
+        return isEntityOnAir(client.player) && !client.player.isFallFlying() && !client.player.isSleeping() && !client.player.isDead() && lastPos.y - currentPos.y < 0.04 && GamemodeUtils.getOwnGamemode().isSurvivalLike();
     }
 
     // See ServerPlayNetworkHandler#isEntityOnAir

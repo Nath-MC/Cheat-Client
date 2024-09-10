@@ -10,10 +10,12 @@ import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.naxxsoftwares.mod.events.Event;
+import net.naxxsoftwares.mod.helper.TargetManager;
 import net.naxxsoftwares.mod.modules.Module;
+import net.naxxsoftwares.mod.utils.entity.player.PlayerUtils;
+import net.naxxsoftwares.mod.utils.entity.player.RotationsUtils;
 import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,12 +24,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public final class MobAura extends Module {
+public final class MobAura extends Module implements TargetManager<MobEntity> {
 
     private static final HashMap<String, Float> SETTINGS = new HashMap<>();
     public static @Nullable MobEntity target;
@@ -40,74 +41,56 @@ public final class MobAura extends Module {
         SETTINGS.put("hitRadius", 3F);
     }
 
-    public static @Nullable MobEntity getTarget() {
+    @Event
+    public void onPacket(Packet<?> packet, @NotNull CallbackInfo event) {
+        if (packet instanceof PlayerMoveC2SPacket.Full fullPacket && this.hasTarget()) {
+            if (fullPacket.getYaw(0) != RotationsUtils.serverYaw || fullPacket.getPitch(0) != RotationsUtils.serverPitch) {
+                Vec3d pos = new Vec3d(fullPacket.getX(0), fullPacket.getY(0), fullPacket.getZ(0));
+                event.cancel();
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y, pos.z, client.player.isOnGround()));
+            }
+        } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround lookPacket && this.hasTarget())
+            if (lookPacket.getYaw(0F) != RotationsUtils.getServerYaw() || lookPacket.getPitch(0F) != RotationsUtils.getServerPitch()) event.cancel();
+    }
+
+    @Override
+    public boolean hasTarget() {
+        return target != null;
+    }
+
+    public @Nullable MobEntity getTarget() {
         return target;
     }
 
-    @Event
-    public void onPacket(Packet<?> packet, @NotNull CallbackInfo ci) {
-        if (packet instanceof PlayerMoveC2SPacket.Full fullPacket && targetFound()) {
-            Vec3d pos = new Vec3d(fullPacket.getX(client.player.getX()), fullPacket.getY(client.player.getY()), fullPacket.getZ(client.player.getZ()));
-            ci.cancel();
-            client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y, pos.z, client.player.isOnGround()));
-        } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround lookPacket && targetFound()) if (lookPacket.getYaw(0F) != serverYaw || lookPacket.getPitch(0F) != serverPitch) ci.cancel();
+    @Override
+    public void clearTarget() {
+        target = null;
     }
 
-    public static boolean targetFound() {
-        return !Objects.isNull(target);
-    }
-
+    @SuppressWarnings("DataFlowIssue")
     @Event
     public void onTick(ClientWorld world) {
         if (GamemodeUtils.isInSpectator()) return;
-        target = this.findTarget(world);
-        if (targetFound()) {
-            this.rotateHeadToTarget(target);
+        target = this.setTarget(world);
+        if (this.hasTarget()) {
+            this.rotateOn(target);
             if (this.canHit(target)) this.attack(target);
         }
 
     }
 
-    private @Nullable MobEntity findTarget(@NotNull ClientWorld world) {
+    private @Nullable MobEntity setTarget(@NotNull ClientWorld world) {
         Vec3d playerEyePos = client.player.getEyePos();
         return getAllValidMobs(world).stream().filter(this::isHostile).min(Comparator.comparingDouble(mob -> playerEyePos.squaredDistanceTo(mob.getPos()))).orElse(null);
     }
 
     private @NotNull List<MobEntity> getAllValidMobs(@NotNull ClientWorld world) {
         Stream<Entity> entityStream = StreamSupport.stream(world.getEntities().spliterator(), false);
-
-        return entityStream.filter(entity -> entity instanceof MobEntity mob && isNear(mob)).map(entity -> (MobEntity) entity).collect(Collectors.toList());
+        return entityStream.filter(entity -> entity instanceof MobEntity mob && isValidTarget(mob)).map(entity -> (MobEntity) entity).collect(Collectors.toList());
     }
 
-    private boolean isNear(@NotNull MobEntity mob) {
-        if (client.player.getEyePos().squaredDistanceTo(mob.getPos()) <= MathHelper.square(SETTINGS.get("targetRadius") * 1.5))
-            return client.player.getEyePos().squaredDistanceTo(determineBestAimPoint(mob)) <= MathHelper.square(SETTINGS.get("targetRadius"));
-        return false;
-    }
-
-    private @Nullable Vec3d determineBestAimPoint(@NotNull MobEntity target) {
-        Vec3d playerEyePos = client.player.getEyePos();
-        Vec3d targetPos = target.getPos();
-
-        // Divide the mob's hitbox into 10 segments along the Y-axis
-        double height = target.getBoundingBox().getLengthY();
-        double offsets = 10;
-        Vec3d closestPoint = null;
-        double closestDistance = Double.MAX_VALUE;
-
-        for (int i = 0; i <= offsets; i++) {
-            double yOffset = (height / offsets) * i;
-            Vec3d point = targetPos.add(0, yOffset, 0);
-            double distance = playerEyePos.squaredDistanceTo(point);
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestPoint = point;
-            }
-        }
-
-        // Return the closest point found
-        return closestPoint;
+    private boolean isValidTarget(@NotNull MobEntity mob) {
+        return PlayerUtils.isEntityInReach(mob, SETTINGS.get("targetRadius"));
     }
 
     private boolean isHostile(MobEntity mob) {
@@ -130,27 +113,22 @@ public final class MobAura extends Module {
     }
 
     private boolean canHit(@NotNull MobEntity mob) {
-        return client.player.getAttackCooldownProgress(1F / 20F) == 1F && client.player.squaredDistanceTo(determineBestAimPoint(mob)) <= MathHelper.square(SETTINGS.get("hitRadius"));
+        return PlayerUtils.isCooldownFinished() && PlayerUtils.isEntityInReach(mob, SETTINGS.get("hitRadius"));
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private void attack(MobEntity target) {
         client.interactionManager.attackEntity(client.player, target);
         client.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
     }
 
-    //See Entity#lookAt
-    private void rotateHeadToTarget(@NotNull MobEntity target) {
-        Vec3d targetPos = determineBestAimPoint(target);
-        Vec3d playerEyePos = client.player.getEyePos();
+    private void rotateOn(@NotNull MobEntity target) {
+        RotationsUtils.setRotationOn(target);
+        RotationsUtils.applyRotation(true);
+    }
 
-        double d = targetPos.x - playerEyePos.x;
-        double e = targetPos.y - playerEyePos.y;
-        double f = targetPos.z - playerEyePos.z;
-        double g = Math.sqrt(d * d + f * f);
-
-        serverYaw = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 180.0F / Math.PI) - 90.0F);
-        serverPitch = MathHelper.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 180.0F / Math.PI)));
-
-        client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(serverYaw, serverPitch, client.player.isOnGround()));
+    @Override
+    public void onActivate() {
+        this.clearTarget();
     }
 }

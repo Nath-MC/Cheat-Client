@@ -18,6 +18,7 @@ public final class Initializer implements ClientModInitializer {
     public static final ModMetadata MOD_META;
     public static final String MOD_ID = "cheatmod";
     public static final String MOD_NAME;
+    public static final String MOD_VERSION;
     public static final MinecraftClient client;
     public static final boolean isDevelopmentEnvironment;
     private static final Logger LOGGER;
@@ -25,6 +26,7 @@ public final class Initializer implements ClientModInitializer {
     static {
         MOD_META = FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow(() -> new NoSuchElementException("Mod container not found for ID: " + MOD_ID)).getMetadata();
         MOD_NAME = MOD_META.getName();
+        MOD_VERSION = MOD_META.getVersion().getFriendlyString();
         LOGGER = LoggerFactory.getLogger(String.format("%s / Initializer", MOD_NAME));
         client = MinecraftClient.getInstance();
         isDevelopmentEnvironment = FabricLoader.getInstance().isDevelopmentEnvironment();
@@ -47,7 +49,6 @@ public final class Initializer implements ClientModInitializer {
                     Module module = clazz.getDeclaredConstructor().newInstance();
                     Modules.addModule(module);
                     EventRegisterer.registerEvents(module);
-                    if (isDevelopmentEnvironment) LOGGER.info("\"{}\" had been registered", Module.getStringName(module));
                 } else {
                     String name = clazz.getSimpleName();
                     LOGGER.error("Skipping \"{}\" as it is not a valid module !", name);
@@ -64,5 +65,6 @@ public final class Initializer implements ClientModInitializer {
         else LOGGER.warn("Modules instantiated in {} ms. {} modules were skipped !", timeAtEnd - timeAtStart, skippedModules);
 
         Runtime.getRuntime().gc();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> LOGGER.info("That was {} v{} by PurpyNaxx !", MOD_NAME, MOD_VERSION)));
     }
 }

@@ -21,7 +21,7 @@ public final class TriggerBot extends Module {
     @Event
     public void onClientTick(MinecraftClient client) {
         if (client.crosshairTarget.getType() == HitResult.Type.ENTITY && !GamemodeUtils.isInSpectator()) {
-            if (((EntityHitResult) client.crosshairTarget).getEntity() instanceof LivingEntity entity && PlayerUtils.isEntityInReach(entity) && PlayerUtils.isCooldownFinished(1F / 20F)) {
+            if (((EntityHitResult) client.crosshairTarget).getEntity() instanceof LivingEntity entity && PlayerUtils.isEntityInReach(entity) && PlayerUtils.isCooldownFinished()) {
                 if (entity instanceof PlayerEntity player) {
                     if (GamemodeUtils.getGamemode(player).isSurvivalLike()) hit(player);
                 } else hit(entity);

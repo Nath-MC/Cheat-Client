@@ -20,8 +20,7 @@ public final class NoFall extends Module {
         if (packet instanceof PlayerMoveC2SPacket movePacket) {
             if (!movePacket.isOnGround() && !(client.player.verticalCollision && client.player.groundCollision) && client.player.fallDistance > 3 && GamemodeUtils.getOwnGamemode().isSurvivalLike()) {
                 ci.cancel();
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.Full(movePacket.getX(0), movePacket.getY(0), movePacket.getZ(0), movePacket.getYaw(client.player.getYaw()),
-                        movePacket.getPitch(0), true));
+                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.Full(movePacket.getX(0), movePacket.getY(0), movePacket.getZ(0), movePacket.getYaw(client.player.getYaw()), movePacket.getPitch(0), true));
             }
         }
     }

@@ -22,7 +22,6 @@ public final class AutoCrit extends Module {
             boolean isSameTarget = true;
             for (Module module : Modules.getAllModulesMatching(Module::isActive))
                 if (module instanceof TargetManager<?> targetManager && targetManager.getTarget() != attackPacket.cheatClient$getEntity()) isSameTarget = false;
-
             if (isSameTarget) {
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY() + 0.01, client.player.getZ(), false));
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY(), client.player.getZ(), false));

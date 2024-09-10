@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class PlayerUtils {
 
+    public static final float baseTime = 1F / 20F; //
     private static final MinecraftClient client = Initializer.client;
 
     public static boolean isEntityInReach(@NotNull Entity entity) {
@@ -17,7 +18,7 @@ public abstract class PlayerUtils {
         return client.player.getEyePos().squaredDistanceTo(RotationsUtils.getClosestPointOnHitbox(entity)) <= Math.pow(reach, 2);
     }
 
-    public static boolean isCooldownFinished(float baseTime) {
+    public static boolean isCooldownFinished() {
         return client.player.getAttackCooldownProgress(baseTime) == 1F;
     }
 }
