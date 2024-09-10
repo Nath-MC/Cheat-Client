@@ -31,7 +31,7 @@ jobs:
       - name: Get mod id from fabric.mod.json
         id: get_id
         run: |
-          MOD_ID=$(grep '"id":' fabric.mod.json | sed 's/[",]//g' | awk '{print $2}')
+          MOD_ID=$(grep '"id":' src/main/resources/fabric.mod.json | sed 's/[",]//g' | awk '{print $2}')
           echo "MOD_ID=$MOD_ID" >> $GITHUB_ENV
         shell: bash
 
