@@ -27,40 +27,41 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
-      # fetch mod id
-      - name: Get mod id from gradle.properties
+      # fetch mod id from fabric.mod.json
+      - name: Get mod id from fabric.mod.json
         id: get_id
-        run: echo "MOD_ID=$(grep '^"id"=' fabric.mod.json | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+        run: |
+          MOD_ID=$(grep '"id":' fabric.mod.json | sed 's/[",]//g' | awk '{print $2}')
+          echo "MOD_ID=$MOD_ID" >> $GITHUB_ENV
+        shell: bash
 
-      # fetch mod version
+      # fetch mod version from gradle.properties
       - name: Get version from gradle.properties
         id: get_version
-        run: echo "VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
 
       # Create GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
         with:
-          tag_name: v$VERSION
-          release_name: Release v$VERSION
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
           body: |
-            Release of version $VERSION
+            Release of version ${{ env.VERSION }}
           draft: false
           prerelease: false
 
       # Upload the built mod file to the release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
-          MOD_ID: ${{ steps.get_id.outputs.MOD_ID }}
         with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/$MOD_ID-$VERSION.jar
-          asset_name: $MOD_ID-$VERSION.jar
+          asset_path: build/libs/${{ env.MOD_ID }}-${{ env.VERSION }}.jar
+          asset_name: ${{ env.MOD_ID }}-${{ env.VERSION }}.jar
           asset_content_type: application/java-archive
