@@ -27,5 +27,3 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
-      - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v4
