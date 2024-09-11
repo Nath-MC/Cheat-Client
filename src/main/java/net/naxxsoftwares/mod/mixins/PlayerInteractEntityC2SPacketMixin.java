@@ -2,7 +2,7 @@ package net.naxxsoftwares.mod.mixins;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
-import net.naxxsoftwares.mod.mixininterfaces.IPlayerInteractEntityC2SPacket;
+import net.naxxsoftwares.mod.accessors.PlayerInteractEntityC2SPacketAccessor;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import static net.naxxsoftwares.mod.Initializer.client;
 
 @Mixin(PlayerInteractEntityC2SPacket.class)
-public abstract class PlayerInteractEntityC2SPacketMixin implements IPlayerInteractEntityC2SPacket {
+public abstract class PlayerInteractEntityC2SPacketMixin implements PlayerInteractEntityC2SPacketAccessor {
     @Shadow
     @Final
     private PlayerInteractEntityC2SPacket.InteractTypeHandler type;

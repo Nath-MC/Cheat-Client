@@ -1,4 +1,4 @@
-package net.naxxsoftwares.mod.utils.entity.player;
+package net.naxxsoftwares.mod.utils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;

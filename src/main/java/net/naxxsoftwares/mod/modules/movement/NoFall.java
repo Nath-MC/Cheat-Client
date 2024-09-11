@@ -4,8 +4,8 @@ import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
-import net.naxxsoftwares.mod.utils.chat.ChatUtils;
-import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
+import net.naxxsoftwares.mod.utils.ChatUtils;
+import net.naxxsoftwares.mod.utils.GamemodeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 

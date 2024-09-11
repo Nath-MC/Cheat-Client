@@ -9,8 +9,8 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
-import net.naxxsoftwares.mod.utils.entity.player.PlayerUtils;
-import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
+import net.naxxsoftwares.mod.utils.GamemodeUtils;
+import net.naxxsoftwares.mod.utils.PlayerUtils;
 
 public final class TriggerBot extends Module {
 

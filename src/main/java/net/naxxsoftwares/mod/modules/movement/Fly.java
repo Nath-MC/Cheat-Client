@@ -9,7 +9,7 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Vec3d;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
-import net.naxxsoftwares.mod.utils.world.gamemode.GamemodeUtils;
+import net.naxxsoftwares.mod.utils.GamemodeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package net.naxxsoftwares.mod.helper;
+package net.naxxsoftwares.mod.helpers;
 
 import net.minecraft.entity.Entity;
 

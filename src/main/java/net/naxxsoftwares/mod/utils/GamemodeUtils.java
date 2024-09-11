@@ -1,4 +1,4 @@
-package net.naxxsoftwares.mod.utils.world.gamemode;
+package net.naxxsoftwares.mod.utils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;

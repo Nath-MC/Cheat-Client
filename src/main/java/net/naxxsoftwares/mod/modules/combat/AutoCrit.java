@@ -3,9 +3,9 @@ package net.naxxsoftwares.mod.modules.combat;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.naxxsoftwares.mod.accessors.PlayerInteractEntityC2SPacketAccessor;
 import net.naxxsoftwares.mod.events.Event;
-import net.naxxsoftwares.mod.helper.TargetManager;
-import net.naxxsoftwares.mod.mixininterfaces.IPlayerInteractEntityC2SPacket;
+import net.naxxsoftwares.mod.helpers.TargetManager;
 import net.naxxsoftwares.mod.modules.Module;
 import net.naxxsoftwares.mod.modules.Modules;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -18,10 +18,10 @@ public final class AutoCrit extends Module {
 
     @Event
     public void onPacket(Packet<?> packet, CallbackInfo ci) {
-        if (packet instanceof IPlayerInteractEntityC2SPacket attackPacket && attackPacket.cheatClient$getType() == PlayerInteractEntityC2SPacket.InteractType.ATTACK) {
+        if (packet instanceof PlayerInteractEntityC2SPacketAccessor attackPacket && attackPacket.cheatClient$getType() == PlayerInteractEntityC2SPacket.InteractType.ATTACK) {
             boolean isSameTarget = true;
-            for (Module module : Modules.getAllModulesMatching(Module::isActive))
-                if (module instanceof TargetManager<?> targetManager && targetManager.getTarget() != attackPacket.cheatClient$getEntity()) isSameTarget = false;
+            for (Module module : Modules.getAllModulesMatching(module -> module.isActive() && module instanceof TargetManager<?>))
+                if (((TargetManager<?>) module).getTarget() != attackPacket.cheatClient$getEntity()) isSameTarget = false;
             if (isSameTarget) {
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY() + 0.01, client.player.getZ(), false));
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY(), client.player.getZ(), false));

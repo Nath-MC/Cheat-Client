@@ -1,4 +1,4 @@
-package net.naxxsoftwares.mod.utils.entity.player;
+package net.naxxsoftwares.mod.utils;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static net.naxxsoftwares.mod.Initializer.client;
 
-public class RotationsUtils {
+public abstract class RotationsUtils {
     public static float serverYaw;
     public static float serverPitch;
 
