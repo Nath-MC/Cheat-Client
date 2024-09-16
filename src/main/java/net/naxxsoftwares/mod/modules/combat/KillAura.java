@@ -80,7 +80,7 @@ public final class KillAura extends Module implements TargetManager<PlayerEntity
     }
 
     private boolean isValidTarget(@NotNull PlayerEntity target) {
-        return target != client.player && GamemodeUtils.getGamemode(target).isSurvivalLike() && PlayerUtils.isEntityInReach(target, SETTINGS.get("targetRadius"));
+        return target != client.player && target.isAlive() && GamemodeUtils.getGamemode(target).isSurvivalLike() && PlayerUtils.isEntityInReach(target, SETTINGS.get("targetRadius"));
     }
 
     private boolean canHit(@NotNull PlayerEntity player) {
