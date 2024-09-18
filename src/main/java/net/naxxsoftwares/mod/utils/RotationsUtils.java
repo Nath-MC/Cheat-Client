@@ -90,6 +90,19 @@ public abstract class RotationsUtils {
         return serverPitch;
     }
 
+    public static void setServerYaw(float serverYaw) {
+        RotationsUtils.serverYaw = serverYaw;
+    }
+
+    public static void setServerPitch(float serverPitch) {
+        RotationsUtils.serverPitch = serverPitch;
+    }
+
+    public static void reset() {
+        setServerYaw(client.player.getYaw());
+        setServerPitch(client.player.getPitch());
+    }
+
     public static void applyRotation(boolean serverOnly) {
         if (!serverOnly) client.player.setAngles(serverYaw, serverPitch);
         client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(serverYaw, serverPitch, client.player.isOnGround()));

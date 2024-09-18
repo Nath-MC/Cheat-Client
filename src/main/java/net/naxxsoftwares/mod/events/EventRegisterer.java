@@ -1,9 +1,11 @@
 package net.naxxsoftwares.mod.events;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.naxxsoftwares.mod.events.packet.PacketEvent;
 import net.naxxsoftwares.mod.events.tick.TickEvents;
 import net.naxxsoftwares.mod.modules.Module;
+import net.naxxsoftwares.mod.utils.RotationsUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ public class EventRegisterer {
     // Register all methods annotated with @Event
     public static void registerEvents(@NotNull Module module) {
         Class<?> clazz = module.getClass();
+        if (isDevelopmentEnvironment) LOGGER.info("Registering events for \"{}\"", clazz.getSimpleName());
 
         // Loop through all declared methods in the class
         for (Method method : clazz.getDeclaredMethods()) {
@@ -36,10 +39,13 @@ public class EventRegisterer {
                 }
 
                 switch (eventType) {
-                    case PACKET -> registerPacketEventFor(module, method);
-                    case WORLD_TICK -> registerWorldTickEventFor(module, method);
-                    case CLIENT_TICK -> registerClientTickEventFor(module, method);
-                    case WORLD_JOIN -> registerWorldJoinEventFor(module, method);
+                    case PACKET -> PacketEvent.SEND.register((packet, event) -> {
+                        if (packet instanceof PlayerPositionLookS2CPacket) RotationsUtils.reset();
+                        invokeEventHandler(module, method, packet, event);
+                    });
+                    case WORLD_TICK -> TickEvents.WORLD_TICK.register(world -> invokeEventHandler(module, method, world));
+                    case CLIENT_TICK -> TickEvents.CLIENT_TICK.register(client -> invokeEventHandler(module, method, client));
+                    case WORLD_JOIN -> ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> invokeEventHandler(module, method));
                 }
             }
         }
@@ -57,7 +63,7 @@ public class EventRegisterer {
     }
 
     private static void invokeEventHandler(Module module, Method method, Object... args) {
-        if (shouldInvoke(module)) {
+        if (shouldInvokeMethodInModule(module)) {
             try {
                 method.setAccessible(true);
                 method.invoke(module, args);
@@ -67,27 +73,7 @@ public class EventRegisterer {
         }
     }
 
-    private static boolean shouldInvoke(@NotNull Module module) {
+    private static boolean shouldInvokeMethodInModule(@NotNull Module module) {
         return module.isActive() && client.player != null;
-    }
-
-    private static void registerPacketEventFor(Module module, Method method) {
-        if (isDevelopmentEnvironment) LOGGER.info("Registered a packet event for \"{}\"", Module.getStringName(module));
-        PacketEvent.SEND.register((packet, event) -> invokeEventHandler(module, method, packet, event));
-    }
-
-    private static void registerWorldTickEventFor(Module module, Method method) {
-        if (isDevelopmentEnvironment) LOGGER.info("Registered a world tick event for \"{}\"", Module.getStringName(module));
-        TickEvents.WORLD_TICK.register(world -> invokeEventHandler(module, method, world));
-    }
-
-    private static void registerClientTickEventFor(Module module, Method method) {
-        if (isDevelopmentEnvironment) LOGGER.info("Registered a client tick event for \"{}\"", Module.getStringName(module));
-        TickEvents.CLIENT_TICK.register(client -> invokeEventHandler(module, method, client));
-    }
-
-    private static void registerWorldJoinEventFor(Module module, Method method) {
-        if (isDevelopmentEnvironment) LOGGER.info("Registered a world join event for \"{}\"", Module.getStringName(module));
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> invokeEventHandler(module, method));
     }
 }
