@@ -1,5 +1,8 @@
 package net.naxxsoftwares.mod.modules.combat;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -18,14 +21,28 @@ public final class AutoCrit extends Module {
 
     @Event
     public void onPacket(Packet<?> packet, CallbackInfo ci) {
-        if (packet instanceof PlayerInteractEntityC2SPacketAccessor attackPacket && attackPacket.cheatClient$getType() == PlayerInteractEntityC2SPacket.InteractType.ATTACK) {
+        if (packet instanceof PlayerInteractEntityC2SPacketAccessor interactPacket && isAttackType(interactPacket) && canCrit() && client.player.fallDistance <= 0) {
+            Entity hitEntity = interactPacket.cheatClient$getEntity();
+
+            if (!(hitEntity instanceof LivingEntity)) return;
+
             boolean isSameTarget = true;
+
             for (Module module : Modules.getAllModulesMatching(module -> module.isActive() && module instanceof TargetManager<?>))
-                if (((TargetManager<?>) module).getTarget() != attackPacket.cheatClient$getEntity()) isSameTarget = false;
-            if (isSameTarget) {
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY() + 0.01, client.player.getZ(), false));
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY(), client.player.getZ(), false));
-            }
+                if (((TargetManager<?>) module).getTarget() != interactPacket.cheatClient$getEntity()) isSameTarget = false;
+
+            if (!isSameTarget) return;
+
+            client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY() + 0.000001, client.player.getZ(), false));
+            client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(client.player.getX(), client.player.getY(), client.player.getZ(), false));
         }
+    }
+
+    private boolean isAttackType(PlayerInteractEntityC2SPacketAccessor packet) {
+        return packet.cheatClient$getType() == PlayerInteractEntityC2SPacket.InteractType.ATTACK;
+    }
+
+    private boolean canCrit() {
+        return !client.player.isTouchingWater() && !client.player.isClimbing() && !client.player.hasStatusEffect(StatusEffects.BLINDNESS) && !client.player.hasVehicle() && client.player.getAttackCooldownProgress(0.5F) > 0.9F;
     }
 }
