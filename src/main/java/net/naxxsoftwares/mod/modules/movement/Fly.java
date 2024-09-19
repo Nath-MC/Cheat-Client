@@ -88,7 +88,7 @@ public final class Fly extends Module {
 
             boat.setVelocity(velocity);
             resetFloating();
-        } else if (client.player.isFallFlying()) { //Elytra fy mode
+        } else if (client.player.isFallFlying()) { //Elytra fly mode
 
             if (client.options.jumpKey.isPressed()) velocity = velocity.add(0, getFinalSpeed(client.player) / 1.5F, 0);
 
@@ -129,7 +129,7 @@ public final class Fly extends Module {
 
     // See ServerPlayNetworkHandler#isEntityOnAir
     private boolean isEntityOnAir(@NotNull Entity entity) {
-        return entity.getWorld().getStatesInBox(entity.getBoundingBox().expand(0.0625D).stretch(0.0, -0.6, 0.0)).allMatch(AbstractBlock.AbstractBlockState::isAir);
+        return entity.getWorld().getStatesInBox(entity.getBoundingBox().expand(0.0625D).stretch(0.0, -0.55, 0.0)).allMatch(AbstractBlock.AbstractBlockState::isAir);
     }
 
     private float getFinalSpeed(@NotNull ClientPlayerEntity player) {
