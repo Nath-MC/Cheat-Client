@@ -65,6 +65,6 @@ public final class Initializer implements ClientModInitializer {
         else LOGGER.warn("Modules instantiated in {} ms. {} modules were skipped !", timeAtEnd - timeAtStart, skippedModules);
 
         Runtime.getRuntime().gc();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> LOGGER.info("That was {} v{} by PurpyNaxx !", MOD_NAME, MOD_VERSION)));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> LOGGER.info("That was {} v{} by PurpyNaxx_ !", MOD_NAME, MOD_VERSION)));
     }
 }

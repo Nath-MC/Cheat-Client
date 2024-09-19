@@ -2,8 +2,9 @@ package net.naxxsoftwares.mod.modules.movement;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
@@ -15,6 +16,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.RaycastContext;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
+import net.naxxsoftwares.mod.utils.PositionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
@@ -24,22 +27,18 @@ public final class ClickTP extends Module {
 
     public ClickTP() {
         super("TP like an enderman");
-        SETTINGS.put("reach", 16F); // Default value
+        SETTINGS.put("reach", 36F); // Default value
     }
 
     @Event
     public void onClientTick(MinecraftClient client) {
         if (!client.options.useKey.wasPressed()) return;
 
-        ItemStack mainHandItemStack = client.player.getMainHandStack();
+        ItemStack itemStack = client.player.getMainHandStack();
         Vec3d playerEyePos = client.player.getEyePos();
-
-        float maxDistance = SETTINGS.get("reach");
-        Vec3d playerPos = client.player.getCameraPosVec(1F / 20F);
         Vec3d playerRotation = client.player.getRotationVector();
-        Vec3d maxRaycastPos = playerPos.add(playerRotation.multiply(maxDistance));
-
-        HitResult hitResult = client.world.raycast(new RaycastContext(playerPos, maxRaycastPos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, client.player));
+        Vec3d maxRaycastPos = playerEyePos.add(playerRotation.multiply(SETTINGS.get("reach")));
+        HitResult hitResult = client.world.raycast(new RaycastContext(playerEyePos, maxRaycastPos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, client.player));
 
         // Handle entity interaction
         if (hitResult.getType() == HitResult.Type.ENTITY) {
@@ -51,25 +50,29 @@ public final class ClickTP extends Module {
         if (hitResult.getType() == HitResult.Type.BLOCK) {
             BlockHitResult blockHit = (BlockHitResult) hitResult;
             BlockPos blockPos = blockHit.getBlockPos();
-            Direction blockFace = blockHit.getSide();
             BlockState blockState = client.world.getBlockState(blockPos);
 
-            // Check block interaction range and item in hand
-            double distanceToHit = hitResult.getPos().squaredDistanceTo(playerEyePos);
-            if (distanceToHit <= Math.pow(client.player.getBlockInteractionRange(), 2) && !mainHandItemStack.isEmpty()) return;
-
-            // Interact with block
-            ActionResult result = blockState.onUse(client.world, client.player, blockHit);
-            if (result != ActionResult.PASS) return;
-
+            //If the block is reachable and if the held item is a block or if the block can be interacted with, skip.
+            if (isBlockInReach(blockPos) && (itemStack.getItem() instanceof BlockItem || blockState.onUse(client.world, client.player, blockHit) != ActionResult.PASS)) return;
+            if (!canTPAbove(client.world, blockPos)) return;
 
             VoxelShape collisionShape = blockState.getCollisionShape(client.world, blockPos);
-            double shapeHeight = collisionShape.isEmpty() ? 1 : collisionShape.getMax(Direction.Axis.Y);
-
-            Vec3d finalPos = new Vec3d(blockPos.getX() + 0.5 + blockFace.getOffsetX(), blockPos.getY() + shapeHeight, blockPos.getZ() + 0.5 + blockFace.getOffsetZ());
-
-            client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(finalPos.x, finalPos.y, finalPos.z, client.player.isOnGround()));
-            client.player.setPosition(finalPos);
+            Vec3d finalPos = new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + collisionShape.getMax(Direction.Axis.Y), blockPos.getZ() + 0.5 );
+            PositionUtils.lerpPositionPacket(client.player.getPos(), finalPos, false, 5);
         }
     }
+
+    private boolean isBlockInReach(@NotNull BlockPos blockPos) {
+       return blockPos.getSquaredDistance(client.player.getEyePos()) <= Math.pow(client.player.getBlockInteractionRange(), 2);
+    }
+
+    private boolean canTPAbove(ClientWorld world, BlockPos pos) {
+        for (int i = 1; i <= 2; i++) {
+            BlockState state = world.getBlockState(pos.up(i));
+            VoxelShape shape = state.getCollisionShape(world, pos.up(i));
+           if (!shape.isEmpty()) return false;
+        }
+        return true;
+    }
+
 }
