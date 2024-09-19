@@ -63,17 +63,35 @@ public class EventRegisterer {
     }
 
     private static void invokeEventHandler(Module module, Method method, Object... args) {
-        if (shouldInvokeMethodInModule(module)) {
+        if (shouldInvokeMethodInModule(module) && areArgsValid(module, method, args)) {
             try {
                 method.setAccessible(true);
                 method.invoke(module, args);
             } catch (Exception e) {
-                LoggerFactory.getLogger(EventRegisterer.class).error("Error invoking method: \"{}\" in \"{}\"", method.getName(), module.getClass(), e);
+                LoggerFactory.getLogger(EventRegisterer.class).error("Error invoking method: \"{}\" in \"{}\"", method.getName(), module.getClass());
             }
         }
     }
 
     private static boolean shouldInvokeMethodInModule(@NotNull Module module) {
         return module.isActive() && client.player != null;
+    }
+
+    private static boolean areArgsValid(Module module, @NotNull Method method, Object @NotNull ... args) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+
+        if (parameterTypes.length != args.length) {
+            LOGGER.error("Method \"{}\" in \"{}\" expects {} argument(s), but received {}.", method.getName(), Module.getStringName(module), parameterTypes.length, args.length);
+            return false;
+        }
+
+        for (int i = 0; i < parameterTypes.length; i++) {
+            // We use isAssignableFrom to ensure that the argument's class can be assigned to the parameter type (this allows for inheritance and interface implementations).
+            if (args[i] != null && !parameterTypes[i].isAssignableFrom(args[i].getClass())) {
+                LOGGER.error("Argument type mismatch at index {}: expected \"{}\", but got \"{}\".", i, parameterTypes[i].getName(), args[i].getClass().getName());
+                return false;
+            }
+        }
+        return true;
     }
 }
