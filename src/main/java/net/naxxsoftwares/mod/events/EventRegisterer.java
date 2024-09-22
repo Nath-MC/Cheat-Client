@@ -43,8 +43,9 @@ public class EventRegisterer {
                         if (packet instanceof PlayerPositionLookS2CPacket) RotationsUtils.reset();
                         invokeEventHandler(module, method, packet, event);
                     });
-                    case WORLD_TICK -> TickEvents.WORLD_TICK.register(world -> invokeEventHandler(module, method, world));
-                    case CLIENT_TICK -> TickEvents.CLIENT_TICK.register(client -> invokeEventHandler(module, method, client));
+                    case WORLD_STARTING_TICK -> TickEvents.WORLD_STARTING_TICK.register(() -> invokeEventHandler(module, method));
+                    case WORLD_ENDING_TICK -> TickEvents.WORLD_ENDING_TICK.register(() -> invokeEventHandler(module, method));
+                    case CLIENT_STARTING_TICK -> TickEvents.CLIENT_STARTING_TICK.register(() -> invokeEventHandler(module, method));
                     case WORLD_JOIN -> ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> invokeEventHandler(module, method));
                 }
             }
@@ -53,8 +54,9 @@ public class EventRegisterer {
 
     public static @Nullable EventType inferEventType(@NotNull String methodName) {
         return switch (methodName) {
-            case "onTick" -> EventType.WORLD_TICK;
-            case "onClientTick" -> EventType.CLIENT_TICK;
+            case "onStartingTick" -> EventType.WORLD_STARTING_TICK;
+            case "onEndingTick" -> EventType.WORLD_ENDING_TICK;
+            case "onClientTick" -> EventType.CLIENT_STARTING_TICK;
             case "onPacket" -> EventType.PACKET;
             case "onWorldJoin" -> EventType.WORLD_JOIN;
             default -> null;

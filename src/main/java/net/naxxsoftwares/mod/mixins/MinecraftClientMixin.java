@@ -12,7 +12,7 @@ public abstract class MinecraftClientMixin {
 
     @Inject(at = @At("HEAD"), method = "tick")
     private void onClientTick(CallbackInfo ci) {
-        TickEvents.CLIENT_TICK.invoker().onClientTick((MinecraftClient) (Object) this);
+        TickEvents.CLIENT_STARTING_TICK.invoker().onClientTick();
     }
 
 }

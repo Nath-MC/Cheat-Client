@@ -10,8 +10,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientWorld.class)
 public abstract class ClientWorldMixin {
 
-    @Inject(at = @At("TAIL"), method = "tickEntities")
-    private void onEndTick(CallbackInfo ci) {
-        TickEvents.WORLD_TICK.invoker().onWorldTick((ClientWorld) (Object) this);
+    @Inject(method = "tickEntities", at = @At("HEAD"))
+    private void startWorldTick(CallbackInfo ci) {
+        TickEvents.WORLD_STARTING_TICK.invoker().onWorldTick();
+    }
+
+    @Inject(method = "tickEntities", at = @At("TAIL"))
+    public void tickWorldAfterBlockEntities(CallbackInfo ci) {
+        TickEvents.WORLD_ENDING_TICK.invoker().onWorldTick();
     }
 }
