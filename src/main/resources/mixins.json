@@ -8,6 +8,7 @@
     "ClientWorldMixin",
     "GameMenuScreenMixin",
     "MinecraftClientMixin",
+    "PlayerEntityMixin",
     "PlayerInteractEntityC2SPacketMixin"
   ],
   "injectors": {

@@ -1,7 +1,6 @@
 package net.naxxsoftwares.mod.modules.movement;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -31,7 +30,7 @@ public final class ClickTP extends Module {
     }
 
     @Event
-    public void onClientTick(MinecraftClient client) {
+    public void onClientTick() {
         if (!client.options.useKey.wasPressed()) return;
 
         ItemStack itemStack = client.player.getMainHandStack();
@@ -53,24 +52,29 @@ public final class ClickTP extends Module {
             BlockState blockState = client.world.getBlockState(blockPos);
 
             //If the block is reachable and if the held item is a block or if the block can be interacted with, skip.
-            if (isBlockInReach(blockPos) && (itemStack.getItem() instanceof BlockItem || blockState.onUse(client.world, client.player, blockHit) != ActionResult.PASS)) return;
+            if (isBlockInReach(blockPos) && (itemStack.getItem() instanceof BlockItem || isBlockInteractive(blockHit))) return;
             if (!canTPAbove(client.world, blockPos)) return;
 
             VoxelShape collisionShape = blockState.getCollisionShape(client.world, blockPos);
-            Vec3d finalPos = new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + collisionShape.getMax(Direction.Axis.Y), blockPos.getZ() + 0.5 );
+            Vec3d finalPos = new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + collisionShape.getMax(Direction.Axis.Y), blockPos.getZ() + 0.5);
             PositionUtils.lerpPositionPacket(client.player.getPos(), finalPos, false, 5);
         }
     }
 
+    private boolean isBlockInteractive(@NotNull BlockHitResult blockHit) {
+        BlockState blockState = client.world.getBlockState(blockHit.getBlockPos());
+        return blockState.onUse(client.world, client.player, blockHit) != ActionResult.PASS;
+    }
+
     private boolean isBlockInReach(@NotNull BlockPos blockPos) {
-       return blockPos.getSquaredDistance(client.player.getEyePos()) <= Math.pow(client.player.getBlockInteractionRange(), 2);
+        return blockPos.getSquaredDistance(client.player.getEyePos()) <= Math.pow(client.player.getBlockInteractionRange(), 2);
     }
 
     private boolean canTPAbove(ClientWorld world, BlockPos pos) {
         for (int i = 1; i <= 2; i++) {
             BlockState state = world.getBlockState(pos.up(i));
             VoxelShape shape = state.getCollisionShape(world, pos.up(i));
-           if (!shape.isEmpty()) return false;
+            if (!shape.isEmpty()) return false;
         }
         return true;
     }

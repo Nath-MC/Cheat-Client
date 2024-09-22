@@ -86,12 +86,12 @@ public abstract class RotationsUtils {
         return serverYaw;
     }
 
-    public static float getServerPitch() {
-        return serverPitch;
-    }
-
     public static void setServerYaw(float serverYaw) {
         RotationsUtils.serverYaw = serverYaw;
+    }
+
+    public static float getServerPitch() {
+        return serverPitch;
     }
 
     public static void setServerPitch(float serverPitch) {

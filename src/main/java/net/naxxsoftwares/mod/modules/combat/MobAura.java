@@ -32,8 +32,6 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
 
     private static final HashMap<String, Float> SETTINGS = new HashMap<>();
     public static @Nullable MobEntity target;
-    public static float serverYaw;
-    public static float serverPitch;
 
     public MobAura() {
         super("Same but on hostile mobs");
@@ -69,9 +67,9 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
 
     @SuppressWarnings("DataFlowIssue")
     @Event
-    public void onTick(ClientWorld world) {
+    public void onEndingTick() {
         if (GamemodeUtils.isInSpectator()) return;
-        target = this.setTarget(world);
+        target = this.setTarget(client.world);
         if (this.hasTarget()) {
             this.rotateOn(target);
             if (this.canHit(target)) this.attack(target);

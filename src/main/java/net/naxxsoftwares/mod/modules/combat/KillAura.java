@@ -61,9 +61,9 @@ public final class KillAura extends Module implements TargetManager<PlayerEntity
 
     @SuppressWarnings("DataFlowIssue")
     @Event
-    public void onTick(ClientWorld world) {
+    public void onEndingTick() {
         if (GamemodeUtils.isInSpectator()) return;
-        target = this.setTarget(world);
+        target = this.setTarget(client.world);
         if (this.hasTarget()) {
             this.rotateOn(target);
             if (this.canHit(target)) this.attack(target);

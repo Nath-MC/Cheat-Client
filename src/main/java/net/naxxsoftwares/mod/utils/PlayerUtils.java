@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class PlayerUtils {
 
-    public static final float baseTime = 1F / 20F; //
+    public static final float baseTime = 1F / 20F;
     private static final MinecraftClient client = Initializer.client;
 
     public static boolean isEntityInReach(@NotNull Entity entity) {

@@ -1,6 +1,5 @@
 package net.naxxsoftwares.mod.modules.movement;
 
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Vec3d;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.modules.Module;
@@ -13,7 +12,7 @@ public final class VHop extends Module {
     }
 
     @Event
-    public void onTick(ClientWorld world) {
+    public void onEndingTick() {
         if (Modules.isModuleActive(Fly.class) || !isMoving()) return;
         if (client.player.groundCollision && client.player.verticalCollision) { // Collision under the player == on ground
             client.player.setSprinting(false);
