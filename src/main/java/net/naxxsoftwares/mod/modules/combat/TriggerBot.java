@@ -1,9 +1,7 @@
 package net.naxxsoftwares.mod.modules.combat;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -19,7 +17,7 @@ public final class TriggerBot extends Module {
     }
 
     @Event
-    public void onClientTick(MinecraftClient client) {
+    public void onClientTick() {
         if (client.crosshairTarget.getType() == HitResult.Type.ENTITY && !GamemodeUtils.isInSpectator()) {
             if (((EntityHitResult) client.crosshairTarget).getEntity() instanceof LivingEntity entity && PlayerUtils.isEntityInReach(entity) && PlayerUtils.isCooldownFinished()) {
                 if (entity instanceof PlayerEntity player) {
@@ -30,7 +28,7 @@ public final class TriggerBot extends Module {
     }
 
     private void hit(LivingEntity entity) {
-        client.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
         client.interactionManager.attackEntity(client.player, entity);
+        client.player.swingHand(Hand.MAIN_HAND);
     }
 }
