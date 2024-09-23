@@ -5,6 +5,7 @@
   "client": [
     "BoatEntityMixin",
     "ClientConnectionMixin",
+    "ClientPlayerEntityAccessor",
     "ClientPlayerInteractionManagerAccessor",
     "ClientWorldMixin",
     "GameMenuScreenMixin",
