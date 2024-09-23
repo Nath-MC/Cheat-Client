@@ -8,11 +8,13 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
 import net.naxxsoftwares.mod.events.Event;
 import net.naxxsoftwares.mod.helpers.TargetManager;
+import net.naxxsoftwares.mod.mixins.ClientPlayerInteractionManagerAccessor;
 import net.naxxsoftwares.mod.modules.Module;
 import net.naxxsoftwares.mod.utils.GamemodeUtils;
 import net.naxxsoftwares.mod.utils.PlayerUtils;
@@ -41,14 +43,25 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
 
     @Event
     public void onPacket(Packet<?> packet, @NotNull CallbackInfo event) {
-        if (packet instanceof PlayerMoveC2SPacket.Full fullPacket && this.hasTarget()) {
-            if (fullPacket.getYaw(0) != RotationsUtils.serverYaw || fullPacket.getPitch(0) != RotationsUtils.serverPitch) {
-                Vec3d pos = new Vec3d(fullPacket.getX(0), fullPacket.getY(0), fullPacket.getZ(0));
+        if (hasTarget() && packet instanceof PlayerMoveC2SPacket moveC2SPacket && moveC2SPacket.changesLook()) {
+            if (moveC2SPacket instanceof PlayerMoveC2SPacket.Full fullPacket) {
+                PlayerMoveC2SPacket.PositionAndOnGround newPacket = replacePacket(fullPacket);
                 event.cancel();
-                client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y, pos.z, client.player.isOnGround()));
+                client.getNetworkHandler().sendPacket(newPacket);
+                return;
             }
-        } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround lookPacket && this.hasTarget())
-            if (lookPacket.getYaw(0F) != RotationsUtils.getServerYaw() || lookPacket.getPitch(0F) != RotationsUtils.getServerPitch()) event.cancel();
+
+            PlayerMoveC2SPacket.LookAndOnGround lookPacket = (PlayerMoveC2SPacket.LookAndOnGround) moveC2SPacket;
+
+            if (lookPacket.getYaw(Float.MAX_VALUE) == RotationsUtils.serverYaw) return;
+            if (lookPacket.getPitch(Float.MAX_VALUE) == RotationsUtils.serverPitch) return;
+
+            event.cancel();
+        }
+    }
+
+    private PlayerMoveC2SPacket.PositionAndOnGround replacePacket(PlayerMoveC2SPacket.@NotNull Full packet) {
+        return new PlayerMoveC2SPacket.PositionAndOnGround(packet.getX(Double.MAX_VALUE), packet.getY(Double.MAX_VALUE), packet.getZ(Double.MAX_VALUE), packet.isOnGround());
     }
 
     @Override
@@ -116,7 +129,8 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
 
     @SuppressWarnings("DataFlowIssue")
     private void attack(MobEntity target) {
-        client.interactionManager.attackEntity(client.player, target);
+        ((ClientPlayerInteractionManagerAccessor) client.interactionManager).invokeSyncSelectedSlot();
+        client.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(target, client.player.isSneaking()));
         client.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
     }
 
