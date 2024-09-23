@@ -1,4 +1,4 @@
-package net.naxxsoftwares.mod.accessors;
+package net.naxxsoftwares.mod.mixins;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
