@@ -88,7 +88,7 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
     }
 
     private boolean isValidTarget(@NotNull MobEntity mob) {
-        return PlayerUtils.isEntityInReach(mob, SETTINGS.get("targetRadius")) && mob.isAlive();
+        return PlayerUtils.fastIsEntityInReach(mob, SETTINGS.get("targetRadius")) && mob.isAlive();
     }
 
     private boolean isHostile(MobEntity mob) {
