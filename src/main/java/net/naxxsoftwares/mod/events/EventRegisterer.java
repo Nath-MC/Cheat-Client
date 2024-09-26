@@ -90,7 +90,8 @@ public class EventRegisterer {
         for (int i = 0; i < parameterTypes.length; i++) {
             // We use isAssignableFrom to ensure that the argument's class can be assigned to the parameter type (this allows for inheritance and interface implementations).
             if (args[i] != null && !parameterTypes[i].isAssignableFrom(args[i].getClass())) {
-                LOGGER.error("Argument type mismatch at index {}: expected \"{}\", but got \"{}\".", i, parameterTypes[i].getName(), args[i].getClass().getName());
+                LOGGER.error("Argument type mismatch in method \"{}\" in \"{}\": expected \"{}\", but received \"{}\".", method.getName(), Module.getStringName(module), parameterTypes[i].getSimpleName(),
+                        args[i].getClass().getSimpleName());
                 return false;
             }
         }

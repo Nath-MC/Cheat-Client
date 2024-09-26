@@ -50,18 +50,19 @@ public final class Initializer implements ClientModInitializer {
                     Modules.addModule(module);
                     EventRegisterer.registerEvents(module);
                 } else {
-                    String name = clazz.getSimpleName();
-                    LOGGER.error("Skipping \"{}\" as it is not a valid module !", name);
+                    LOGGER.error("Skipping \"{}\" as it is not a valid module !", clazz.getSimpleName());
                     skippedModules++;
                 }
             } catch (Exception e) {
-                LOGGER.error("Failed to instantiate \"{}\" : {}", clazz.getSimpleName(), e.getMessage(), e);
+                LOGGER.error("Failed to instantiate \"{}\" : {}", clazz.getSimpleName(), e.getMessage());
+                skippedModules++;
             }
         }
 
         long timeAtEnd = System.currentTimeMillis();
+        long duration = timeAtEnd - timeAtStart;
 
-        if (skippedModules == 0) LOGGER.info("All modules were successfully instantiated in {} ms !", timeAtEnd - timeAtStart);
+        if (skippedModules == 0) LOGGER.info("All modules were successfully instantiated in {} ms !", duration);
         else LOGGER.warn("Modules instantiated in {} ms. {} modules were skipped !", timeAtEnd - timeAtStart, skippedModules);
 
         Runtime.getRuntime().gc();

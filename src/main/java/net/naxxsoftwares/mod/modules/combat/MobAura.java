@@ -132,6 +132,7 @@ public final class MobAura extends Module implements TargetManager<MobEntity> {
         ((ClientPlayerInteractionManagerAccessor) client.interactionManager).invokeSyncSelectedSlot();
         client.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(target, client.player.isSneaking()));
         client.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+        client.player.resetLastAttackedTicks();
     }
 
     private void rotateOn(@NotNull MobEntity target) {
